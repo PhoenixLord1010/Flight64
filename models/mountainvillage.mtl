@@ -1,0 +1,12 @@
+# Blender MTL File: 'mountainvillage.blend'
+# Material Count: 1
+
+newmtl Material.001
+Ns 37.254902
+Ka 0.000000 0.000000 0.000000
+Kd 0.375063 0.275436 0.156364
+Ks 0.208873 0.208873 0.208873
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd mountain_text.png
