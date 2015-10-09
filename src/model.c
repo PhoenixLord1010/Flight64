@@ -210,5 +210,3 @@ size_t model_get_vertex_buffer_size(Model *model)
     if (!model)return 0;
     return (sizeof(float)*3*model->num_vertices);
 }
-
-/*eol@eof*/

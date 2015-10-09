@@ -96,6 +96,3 @@ GLuint CreateShader(GLenum eShaderType, const char *strShaderFile)
     
     return shader;
 }
-
-
-/*eol@eof*/

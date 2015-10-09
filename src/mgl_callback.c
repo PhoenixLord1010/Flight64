@@ -45,6 +45,3 @@ void mgl_callback_delete(MglCallback *cb)
     if (!cb)return;
     free(cb);
 }
-
-
-/*eol@eof*/

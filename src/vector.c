@@ -18,6 +18,3 @@ Vec4D vec4d(float x,float y, float z, float w)
     Vec4D v = {x,y,z,w};
     return v;
 }
-
-
-/*eol@eof*/

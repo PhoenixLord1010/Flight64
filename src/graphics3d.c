@@ -2,6 +2,7 @@
 #include "simple_logger.h"
 #include "shader.h"
 #include <glu.h>
+#include <stdlib.h>
 
 
 static SDL_GLContext __graphics3d_gl_context;
@@ -177,6 +178,3 @@ void graphics3d_setup_default_light()
     glEnable(GL_DEPTH_TEST);
     
 }
-
-
-/*eol@eof*/

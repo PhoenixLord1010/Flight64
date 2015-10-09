@@ -1,9 +1,9 @@
 #include "sprite.h"
 #include "simple_logger.h"
 #include "graphics3d.h"
-
 #include <SDL_image.h>
 #include <stdlib.h>
+
 #define MaxSprites    1024
 
 static Sprite SpriteList[MaxSprites];
@@ -122,6 +122,3 @@ void CloseSprites()
       DeleteSprite(&SpriteList[i]);
   }
 }
-
-
-/*eol@eof*/

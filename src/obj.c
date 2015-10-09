@@ -550,6 +550,3 @@ Model *obj_load_model(char *filename)
     
     return model;
 }
-
-
-/*eol@eof*/

@@ -98,5 +98,3 @@ int sphere_cube_intersection(
     }
     return 0;
 }
-
-/*eol@eof*/

@@ -86,7 +86,9 @@ static void space_body_update(Space *space,Body *body)
             /*back the fuck off*/
             vec3d_cpy(body->_stepOffVector,stepOffVector);
             body->_done = 1;
-            body->_needsBackoff = 1;
+            //body->_needsBackoff = 1;
+
+			check_collisions(body,a,b);
             if (body->touch.function)
             {
                 body->touch.function(body->touch.data,other);
@@ -112,7 +114,8 @@ static void space_update(Space *space)
 
 void space_do_step(Space *space)
 {
-	  GList *it;
+	GList *it;
+
     if (!space)return;
     if (space->stepstaken == space->steps)
     {
@@ -135,5 +138,3 @@ void space_free(Space *space)
     if (!space)return;
     free(space);
 }
-
-/*eol@eof*/
