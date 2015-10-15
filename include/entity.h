@@ -54,9 +54,18 @@ int entity_is_entity(void *data);
 
 void update_entities();
 
+void clear_collisions(Body *self);
 void check_collisions(Body *self, Cube a, Cube b);
 
 Entity *make_player(Vec3D position);
 void player_think(Entity *self);
+
+/*Keyboard Input Stuff*/
+void InitKeyboard();
+void ClearKeyboard();
+void UpdateKeyboard();
+int isKeyPressed(int key);
+int isKeyReleased(int key);
+int isKeyHeld(int key);
 
 #endif

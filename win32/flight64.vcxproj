@@ -71,7 +71,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>C:\Users\Bobby\gitlibs\include\GL;C:\Users\Bobby\gitlibs\include\glib-2.0\;C:\Users\Bobby\gitlibs\include\glib-2.0\glib;C:\Users\Bobby\gitlibs\include\glib-2.0\gobject;C:\Users\Bobby\gitlibs\include\SDL;..\include;$(IncludePath)</IncludePath>
+    <IncludePath>C:\Users\Bobby\gitlibs\include\GL;C:\Users\Bobby\gitlibs\include\GLFW;C:\Users\Bobby\gitlibs\include\glib-2.0\;C:\Users\Bobby\gitlibs\include\glib-2.0\glib;C:\Users\Bobby\gitlibs\include\glib-2.0\gobject;C:\Users\Bobby\gitlibs\include\SDL;..\include;$(IncludePath)</IncludePath>
     <LibraryPath>C:\Users\Bobby\gitlibs\lib;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)\..</OutDir>
     <IntDir>$(ProjectDir)\..</IntDir>

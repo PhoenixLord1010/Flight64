@@ -29,6 +29,7 @@
 #include "space.h"
 #include "math.h"
 #include <stdio.h>
+#include <glut.h>
 
 
 #define SCREEN_WIDTH 1024
@@ -70,7 +71,7 @@ Entity *newCube(Vec3D position,const char *name)
     return ent;
 }
 
-Entity *newGround(Vec3D position,const char *name)
+Entity *newGround(Vec3D position)
 {
     Entity * ent;
     ent = entity_new();
@@ -78,12 +79,10 @@ Entity *newGround(Vec3D position,const char *name)
     {
         return NULL;
     }
-    ent->objModel = obj_load("models/cube.obj");
-    ent->texture = LoadSprite("models/cube_text.png",1024,1024);
+    ent->objModel = obj_load("models/ground.obj");
+    ent->texture = LoadSprite("models/ground_text.png",1024,1024);
     vec3d_cpy(ent->body.position,position);
-    cube_set(ent->body.bounds,-1,-1,-1,20,2,2);
-    sprintf(ent->name,"%s",name);
-    //mgl_callback_set(&ent->body.touch,touch_callback,ent);
+    cube_set(ent->body.bounds,-8,-1,-1,16,2,2);
     return ent;
 }
 
@@ -94,13 +93,15 @@ int main(int argc, char *argv[])
     Space *space;
     Entity *cube1,*cube2,*ground, *player;
     char bGameLoopRunning = 1;
-    Vec3D cameraPosition = {5,2,20};
-    Vec3D cameraRotation = {0,0,0};
+    Vec3D cameraPosition = {8,3,20};
+    Vec3D cameraRotation = {-5,0,0};
     SDL_Event e;
     //Obj *bgobj;
     //Sprite *bgtext;
 	GLint iResolution;
 	GLint iGlobalTime;
+	int keyn;
+	Uint8 *keys;
     
     init_all();
 	
@@ -109,12 +110,10 @@ int main(int argc, char *argv[])
     //bgobj = obj_load("models/mountainvillage.obj");
     //bgtext = LoadSprite("models/mountain_text.png",1024,1024);
     
-    cube1 = newCube(vec3d(0,0,0),"Cubert");
-    cube2 = newCube(vec3d(10,0,0),"Hobbes");
-	ground = newGround(vec3d(0,-2.5,0),"floor");
-	player = make_player(vec3d(0,5,0));
-    
-    //cube2->body.velocity.x = -0.1;
+    cube1 = newCube(vec3d(1,0,0),"Cubert");
+    cube2 = newCube(vec3d(15,0,0),"Hobbes");
+	ground = newGround(vec3d(8,-2,0));
+	player = make_player(vec3d(1,5,0));
     
     space = space_new();
     space_set_steps(space,100);
@@ -124,14 +123,16 @@ int main(int argc, char *argv[])
 	space_add_body(space,&ground->body);
 	space_add_body(space,&player->body);
 	glUseProgram(graphics3d_get_shader_program());
+
     while (bGameLoopRunning)
     {
-        update_entities();
+		update_entities();
 		for (i = 0; i < 100;i++)
         {
             space_do_step(space);
         }
-        while ( SDL_PollEvent(&e) ) 
+
+        /*while ( SDL_PollEvent(&e) ) 
         {
             if (e.type == SDL_QUIT)
             {
@@ -143,10 +144,10 @@ int main(int argc, char *argv[])
                 {
                     bGameLoopRunning = 0;
                 }
-                /*else if (e.key.keysym.sym == SDLK_SPACE)
+                else if (e.key.keysym.sym == SDLK_SPACE)
                 {
                     cameraPosition.z++;
-                }*/
+                }
                 else if (e.key.keysym.sym == SDLK_z)
                 {
                     cameraPosition.z--;
@@ -173,7 +174,7 @@ int main(int argc, char *argv[])
                             0
                         ));
                 }
-                /*else if (e.key.keysym.sym == SDLK_d)
+                else if (e.key.keysym.sym == SDLK_d)
                 {
                     vec3d_add(
                         cameraPosition,
@@ -194,7 +195,7 @@ int main(int argc, char *argv[])
                             -sin(cameraRotation.z * DEGTORAD),
                             0
                         ));
-                }*/
+                }
                 else if (e.key.keysym.sym == SDLK_LEFT)
                 {
                     cameraRotation.z += 1;
@@ -212,29 +213,26 @@ int main(int argc, char *argv[])
                     cameraRotation.x -= 1;
                 }
             }
-        }
+        }*/
 		
+		keys = SDL_GetKeyboardState(&keyn);
+		if(keys[SDL_SCANCODE_ESCAPE])bGameLoopRunning = 0;
+
+		SDL_PumpEvents();
+
         graphics3d_frame_begin();
 		
         glUniform3f(iResolution, SCREEN_WIDTH, SCREEN_HEIGHT, 100.0f);
 		glUniform1f(iGlobalTime, SDL_GetTicks() / 1000.0f);
-        glPushMatrix();
-        set_camera(
-            cameraPosition,
-            cameraRotation);
         
-        entity_draw_all();  
-        /*obj_draw(
-            bgobj,
-            vec3d(0,0,2),
-            vec3d(90,90,0),
-            vec3d(5,5,5),
-            vec4d(1,1,1,1),
-            bgtext
-        );*/
-        
+		glPushMatrix();
+			set_camera(
+				cameraPosition,
+				cameraRotation);
+			entity_draw_all();  
         glPopMatrix();
-        /* drawing code above here! */
+
+		UpdateKeyboard();
         graphics3d_next_frame();
     } 
     return 0;
@@ -261,4 +259,5 @@ void init_all()
     model_init();
     obj_init();
     entity_init(255);
+	InitKeyboard();
 }

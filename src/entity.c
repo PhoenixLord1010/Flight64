@@ -1,10 +1,18 @@
 #include "entity.h"
 #include "simple_logger.h"
 #include <stdlib.h>
+#include <math.h>
+#include <glut.h>
+#include <glew.h>
 
 static Entity *__entity_list = NULL;
 static int __entity_max = 0;
 static int __entity_initialized = 0;
+Entity *Player = NULL;
+
+int KeyCount;
+Uint8 *oldkeys; /*last frame's key presses*/
+Uint8 *keys;    /*current frame's key presses*/
 
 static void entity_deinitialize();
 
@@ -120,7 +128,7 @@ void update_entities()
 	}
 }
 
-void check_collisions(Body *self, Cube a, Cube b)
+void clear_collisions(Body *self)
 {
 	self->uCheck = 0;
 	self->dCheck = 0;
@@ -132,7 +140,10 @@ void check_collisions(Body *self, Cube a, Cube b)
 	self->collision.w = 0;
 	self->collision.h = 0;
 	self->collision.d = 0;
-	
+}
+
+void check_collisions(Body *self, Cube a, Cube b)
+{
 	if((abs((b.y+b.h)-a.y) <= abs((a.x+a.w)-b.x)) && (abs((b.y+b.h)-a.y) <= abs((b.x+b.w)-a.x)) && (abs((b.y+b.h)-a.y) <= abs((a.z+a.d)-b.z)) && (abs((b.y+b.h)-a.y) <= abs((b.z+b.d)-a.z)) && (abs((b.y+b.h)-a.y) <= abs((a.y+a.h)-b.y)))
 	{
 		self->uCheck = 1;
@@ -177,6 +188,7 @@ Entity *make_player(Vec3D position)
     ent->think = player_think;
     vec3d_cpy(ent->body.position,position);
     cube_set(ent->body.bounds,-1,-1,-1,2,2,2);
+	Player = ent;
 	return ent;
 }
 
@@ -193,28 +205,104 @@ void player_think(Entity *self)
 	{
 		if(self->body.velocity.y > -2)self->body.velocity.y -= 0.04;
 	}
+	if(self->body.lCheck)
+	{
+		self->body.velocity.x = 0;
+		self->body.position.x = self->body.collision.x - self->body.bounds.w/2;
+	}
+	if(self->body.rCheck)
+	{
+		self->body.velocity.x = 0;
+		self->body.position.x = self->body.collision.w + self->body.bounds.w/2;
+	}
 
-	while ( SDL_PollEvent(&e) ) 
-    {
-		if(e.key.keysym.sym == SDLK_SPACE && self->body.uCheck)
-        {
-			self->body.velocity.y += 0.5;
-			self->body.uCheck = 0;
-		}
-		if((e.key.keysym.sym == SDLK_d) || (e.key.keysym.sym == SDLK_a))
+	if(isKeyHeld(SDL_SCANCODE_SPACE) && self->body.uCheck)
+	{
+		self->body.velocity.y += 0.5;
+		self->body.uCheck = 0;
+	}
+	if(isKeyHeld(SDL_SCANCODE_A) || isKeyHeld(SDL_SCANCODE_D))
+	{
+		if(isKeyHeld(SDL_SCANCODE_D))
 		{
-			if(e.key.keysym.sym == SDLK_d)
-			{
-				if(self->body.velocity.x < 1)self->body.velocity.x += 0.1;
-			}
-			if(e.key.keysym.sym == SDLK_a)
-			{
-				if(self->body.velocity.x > -1)self->body.velocity.x -= 0.1;
-			}
+			if(self->body.velocity.x < 1)self->body.velocity.x += 0.01;
 		}
-		else
+		if(isKeyHeld(SDL_SCANCODE_A))
 		{
-			self->body.velocity.x = 0;
+			if(self->body.velocity.x > -1)self->body.velocity.x -= 0.01;
 		}
 	}
+	else
+	{
+		self->body.velocity.x = 0;
+	}
+}
+
+void InitKeyboard()
+{
+  keys = SDL_GetKeyboardState(&KeyCount);
+  oldkeys = (Uint8 *)malloc(sizeof(Uint8)*KeyCount);
+  if(oldkeys == NULL)
+  {
+    slog("problem");
+  }
+}
+
+void ClearKeyboard()
+{
+  if(oldkeys == NULL)return;
+  memset(oldkeys,0,sizeof(Uint8)*KeyCount);
+}
+
+void UpdateKeyboard()
+{
+  int i;
+  if((oldkeys == NULL)||(keys == NULL))
+  {
+    return;
+  }
+  for(i = 0; i < KeyCount;i++)
+  {
+    oldkeys[i] = keys[i];
+  }
+  keys = SDL_GetKeyboardState(NULL);
+}
+
+int isKeyPressed(int key)
+{
+  if((oldkeys == NULL)||(keys == NULL))
+  {
+    return 0;
+  }
+  if((keys[key]) && (!oldkeys[key]))
+  {
+    return 1;
+  }
+  return 0;
+}
+
+int isKeyReleased(int key)
+{
+  if((oldkeys == NULL)||(keys == NULL))
+  {
+    return 0;
+  }
+  if((!keys[key]) && (oldkeys[key]))
+  {
+    return 1;
+  }
+  return 0;
+}
+
+int isKeyHeld(int key)
+{
+  if((oldkeys == NULL)||(keys == NULL))
+  {
+    return 0;
+  }
+  if((keys[key]) && (oldkeys[key]))
+  {
+    return 1;
+  }
+  return 0;
 }

@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include "space.h"
 #include "body.h"
+#include "entity.h"
 #include "simple_logger.h"
 
 #include <glib.h>
@@ -59,7 +60,8 @@ static void space_body_update(Space *space,Body *body)
     
     vec3d_scale(stepVector,body->velocity,space->stepFactor);
     vec3d_negate(stepOffVector,stepVector);
-    
+    clear_collisions(body);
+
     vec3d_add(body->position,body->position,stepVector);
     
     a.x = body->position.x + body->bounds.x;
@@ -68,6 +70,8 @@ static void space_body_update(Space *space,Body *body)
     a.w = body->bounds.w;
     a.h = body->bounds.h;
     a.d = body->bounds.d;
+
+
     
     for (it = space->bodylist;it != NULL;it = g_list_next(it))
     {
@@ -80,16 +84,17 @@ static void space_body_update(Space *space,Body *body)
         b.h = other->bounds.h;
         b.d = other->bounds.d;
         vec3d_add(b,b,other->bounds);
-        if (cube_cube_intersection(a,b))
+		if (cube_cube_intersection(a,b))
         {
             /*call touch functions*/
             /*back the fuck off*/
             vec3d_cpy(body->_stepOffVector,stepOffVector);
-            body->_done = 1;
+            //body->_done = 1;
             //body->_needsBackoff = 1;
 
 			check_collisions(body,a,b);
-            if (body->touch.function)
+
+			if (body->touch.function)
             {
                 body->touch.function(body->touch.data,other);
             }
