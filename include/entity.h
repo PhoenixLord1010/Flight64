@@ -4,8 +4,8 @@
 #include "obj.h"
 #include "vector.h"
 #include "sprite.h"
-#include "collisions.h"
-#include "body.h"
+//#include "body.h"
+#include "space.h"
 
 typedef struct Entity_S
 {
@@ -54,11 +54,10 @@ int entity_is_entity(void *data);
 
 void update_entities();
 
-void clear_collisions(Body *self);
-void check_collisions(Body *self, Cube a, Cube b);
-
-Entity *make_player(Vec3D position);
+Entity *make_player(Vec3D position, Space *space);
 void player_think(Entity *self);
+Entity *build_cube(Vec3D position, Space *space);
+Entity *build_ground(Vec3D position, Space *space);
 
 /*Keyboard Input Stuff*/
 void InitKeyboard();

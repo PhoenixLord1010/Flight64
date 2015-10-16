@@ -30,4 +30,7 @@ void body_reset(Body *body);
  */
 void body_process(Body *body);
 
+void clear_collisions(Body *self);
+void check_collisions(Body *self, Cube a, Cube b);
+
 #endif

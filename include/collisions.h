@@ -1,6 +1,8 @@
 #ifndef __COLLISIONS_H__
 #define __COLLISIONS_H__
 
+#include "obj.h"
+#include "sprite.h"
 #include "vector.h"
 
 typedef struct
