@@ -27,6 +27,14 @@ void render_level(int level, Space *space)
 			build_ground(vec3d(8,-2,-12),space);
 			build_ground(vec3d(8,-2,-14),space);
 			build_ground(vec3d(8,-2,-16),space);
+			build_ground(vec3d(8,-2,-18),space);
+			build_ground(vec3d(8,-2,-20),space);
+			build_ground(vec3d(8,-2,-22),space);
+			build_ground(vec3d(8,-2,-24),space);
+			build_ground(vec3d(8,-2,-26),space);
+			build_ground(vec3d(8,-2,-28),space);
+			build_ground(vec3d(8,-2,-30),space);
+			build_ground(vec3d(8,-2,-32),space);
 
 			loaded++;
 		}

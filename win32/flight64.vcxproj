@@ -20,6 +20,7 @@
     <ClCompile Include="..\src\mgl_callback.c" />
     <ClCompile Include="..\src\model.c" />
     <ClCompile Include="..\src\obj.c" />
+    <ClCompile Include="..\src\op_3d.c" />
     <ClCompile Include="..\src\shader.c" />
     <ClCompile Include="..\src\simple_logger.c" />
     <ClCompile Include="..\src\space.c" />
@@ -35,6 +36,7 @@
     <ClInclude Include="..\include\mgl_callback.h" />
     <ClInclude Include="..\include\model.h" />
     <ClInclude Include="..\include\obj.h" />
+    <ClInclude Include="..\include\op_3d.h" />
     <ClInclude Include="..\include\shader.h" />
     <ClInclude Include="..\include\simple_logger.h" />
     <ClInclude Include="..\include\space.h" />

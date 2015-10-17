@@ -20,6 +20,25 @@ Vec2D vec2d(float x,float y);
 Vec3D vec3d(float x,float y, float z);
 Vec4D vec4d(float x,float y, float z, float w);
 
+/**
+ * @brief normalizes the vector passed.  does nothing for a zero length vector.
+ *
+ * @param v pointer to the vector to be normalized.
+ */
+float vec3d_magnitude(Vec3D V);
+void vec3d_normalize(Vec3D *V);
+
+/**
+ * basic operations
+ */
+#ifndef MIN
+#define MIN(a,b)          (a<=b?a:b)
+#endif
+
+#ifndef MAX
+#define MAX(a,b)          (a>=b?a:b)
+#endif
+
 #define vec2d_set(v, a, b)      (v.x=(a), v.y=(b))
 #define vec3d_set(v, a, b, c)   (v.x=(a), v.y=(b), v.z=(c))
 #define vec4d_set(v, a, b, c,d) (v.x=(a), v.y=(b), v.z=(c), v.w=(d))

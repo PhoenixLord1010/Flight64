@@ -93,14 +93,14 @@ void entity_draw(Entity *ent)
     {
         return;
     }
-    obj_draw(
-        ent->objModel,
-        ent->body.position,
-        ent->rotation,
-        ent->scale,
-        ent->color,
-        ent->texture
-    );
+	obj_draw(
+		ent->objModel,
+		ent->body.position,
+		ent->rotation,
+		ent->scale,
+		ent->color,
+		ent->texture
+	);
 }
 
 int entity_is_entity(void *data)
@@ -151,8 +151,10 @@ void player_think(Entity *self)
 {
 	SDL_Event e;
 	float speed = 1;
-	float accel = 0.01f;
-	float decel = 0.009f;
+	float accel = 0.2;
+	float decel = 0.01;
+	float rot = 4;
+	Vec3D down = {0,-1,0};
 	
 	/*Collisions*/
 	if(self->body.uCheck)
@@ -163,6 +165,7 @@ void player_think(Entity *self)
 	else
 	{
 		if(self->body.velocity.y > -2)self->body.velocity.y -= 0.04;
+
 	}
 	if(self->body.lCheck)
 	{
@@ -176,17 +179,37 @@ void player_think(Entity *self)
 	}
 
 	/*Player Inputs*/
-	if(isKeyHeld(SDL_SCANCODE_W) || isKeyHeld(SDL_SCANCODE_S))		/*Forward/Back*/
+	if(isKeyHeld(SDL_SCANCODE_W) || isKeyHeld(SDL_SCANCODE_S))		/*Move Forward/Back*/
 	{
 		if(isKeyHeld(SDL_SCANCODE_W))
 		{
-			if(self->body.velocity.z > -speed)self->body.velocity.z -= accel;
-			if(self->body.velocity.z < -speed)self->body.velocity.z = -speed;
+			if(self->body.velocity.z > -speed)
+			{
+				vec3d_add(
+						self->body.position,
+						self->body.position,
+                        vec3d(
+                            -sin(self->rotation.y * DEGTORAD) * accel,
+                            0,
+                            -cos(self->rotation.y * DEGTORAD) * accel
+                        ));
+			}
+			//if(self->body.velocity.z < -speed)self->body.velocity.z = -speed;
 		}
 		if(isKeyHeld(SDL_SCANCODE_S))
 		{
-			if(self->body.velocity.z < speed)self->body.velocity.z += accel;
-			if(self->body.velocity.z > speed)self->body.velocity.z = speed;
+			if(self->body.velocity.z < speed)
+			{
+				vec3d_add(
+						self->body.position,
+						self->body.position,
+                        vec3d(
+                            sin(self->rotation.y * DEGTORAD) * accel,
+                            0,
+                            cos(self->rotation.y * DEGTORAD) * accel
+                        ));
+			}
+			//if(self->body.velocity.z > speed)self->body.velocity.z = speed;
 		}
 	}
 	else
@@ -199,27 +222,16 @@ void player_think(Entity *self)
 		else self->body.velocity.z = 0;
 	}
 
-	if(isKeyHeld(SDL_SCANCODE_A) || isKeyHeld(SDL_SCANCODE_D))		/*Left/Right*/
+	if(isKeyHeld(SDL_SCANCODE_A) || isKeyHeld(SDL_SCANCODE_D))		/*Turn Left/Right*/
 	{
-		if(isKeyHeld(SDL_SCANCODE_D))
+		if(isKeyHeld(SDL_SCANCODE_A))	/*Left*/
 		{
-			if(self->body.velocity.x < speed)self->body.velocity.x += accel;
-			if(self->body.velocity.x > speed)self->body.velocity.x = speed;
+			self->rotation.y += rot;
 		}
-		if(isKeyHeld(SDL_SCANCODE_A))
+		if(isKeyHeld(SDL_SCANCODE_D))	/*Right*/
 		{
-			if(self->body.velocity.x > -speed)self->body.velocity.x -= accel;
-			if(self->body.velocity.x < -speed)self->body.velocity.x = -speed;
+			self->rotation.y -= rot;
 		}
-	}
-	else
-	{
-		if(abs(self->body.velocity.x) > decel)
-		{
-			if(self->body.velocity.x >= decel)self->body.velocity.x -= decel;
-			if(self->body.velocity.x <= -decel)self->body.velocity.x += decel;
-		}
-		else self->body.velocity.x = 0;
 	}
 	
 	if(isKeyHeld(SDL_SCANCODE_SPACE) && self->body.uCheck)		/*Jump*/
