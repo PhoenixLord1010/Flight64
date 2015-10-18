@@ -4,7 +4,6 @@
 #include "obj.h"
 #include "vector.h"
 #include "sprite.h"
-//#include "body.h"
 #include "space.h"
 
 typedef struct Entity_S
@@ -20,6 +19,8 @@ typedef struct Entity_S
     Vec3D rotation;
     Vec3D scale;
     Vec4D color;
+	int tang;
+	int shadow;
 }Entity;
 
 /**
@@ -56,6 +57,8 @@ void update_entities();
 
 Entity *make_player(Vec3D position, Space *space);
 void player_think(Entity *self);
+void make_shadow(Vec3D position);
+void shadow_think(Entity *self);
 Entity *build_cube(Vec3D position, Space *space);
 Entity *build_ground(Vec3D position, Space *space);
 

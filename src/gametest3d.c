@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
     float r = 0;
     Space *space;
     char bGameLoopRunning = 1;
-    Vec3D cameraPosition = {8,4,20};
+    Vec3D cameraPosition = {8,2,15};
     Vec3D cameraRotation = {-7,0,0};
     SDL_Event e;
 	GLint iResolution;

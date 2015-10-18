@@ -1,4 +1,5 @@
 #include "entity.h"
+#include "op_3d.h"
 #include "simple_logger.h"
 #include <stdlib.h>
 #include <math.h>
@@ -8,6 +9,7 @@
 static Entity *__entity_list = NULL;
 static int __entity_max = 0;
 static int __entity_initialized = 0;
+static int __uid = 0;
 Entity *Player = NULL;
 
 int KeyCount;
@@ -69,6 +71,8 @@ Entity *entity_new()
             __entity_list[i].inuse = 1;
             vec3d_set(__entity_list[i].scale,1,1,1);
             vec4d_set(__entity_list[i].color,1,1,1,1);
+			__entity_list[i].uid = __uid;
+			__uid++;
             return &__entity_list[i];
         }
     }
@@ -142,7 +146,9 @@ Entity *make_player(Vec3D position, Space *space)
     ent->think = player_think;
     vec3d_cpy(ent->body.position,position);
     cube_set(ent->body.bounds,-1,-1.5,-1,2,3,2);
+	ent->tang = 1;
 	space_add_body(space,&ent->body);
+	ent->shadow = 0;
 	Player = ent;
 	return ent;
 }
@@ -165,7 +171,11 @@ void player_think(Entity *self)
 	else
 	{
 		if(self->body.velocity.y > -2)self->body.velocity.y -= 0.04;
-
+		if(self->shadow == 0)
+		{
+			make_shadow(self->body.position);
+			self->shadow++;
+		}
 	}
 	if(self->body.lCheck)
 	{
@@ -176,6 +186,16 @@ void player_think(Entity *self)
 	{
 		self->body.velocity.x = 0;
 		self->body.position.x = self->body.collision.w + self->body.bounds.w/2;
+	}
+	if(self->body.fCheck)
+	{
+		self->body.velocity.z = 0;
+		self->body.position.z = self->body.collision.z - self->body.bounds.d/2;
+	}
+	if(self->body.bCheck)
+	{
+		self->body.velocity.z = 0;
+		self->body.position.z = self->body.collision.d + self->body.bounds.d/2;
 	}
 
 	/*Player Inputs*/
@@ -237,6 +257,68 @@ void player_think(Entity *self)
 	if(isKeyHeld(SDL_SCANCODE_SPACE) && self->body.uCheck)		/*Jump*/
 	{
 		self->body.velocity.y += 0.5;
+		if(self->shadow == 0)
+		{
+			make_shadow(self->body.position);
+			self->shadow++;
+		}
+	}
+}
+
+void make_shadow(Vec3D position)
+{
+	Entity *ent;
+    ent = entity_new();
+    if (!ent)return;
+
+    ent->objModel = obj_load("models/shadow.obj");
+    ent->texture = LoadSprite("models/shadow_text.png",1024,1024);
+    ent->think = shadow_think;
+    vec3d_cpy(ent->body.position,position);
+	cube_set(ent->body.bounds,-1,-0.05,-1,2,0.1,2);
+	ent->tang = 0;
+	return;
+}
+
+void shadow_think(Entity *self)
+{
+	int i;
+	float y;
+	Entity ent;
+	Vec3D start,dir,t1,t2,t3,t4,contact;
+
+	vec3d_set(start,Player->body.position.x,Player->body.position.y + Player->body.bounds.y,Player->body.position.z);
+	vec3d_set(dir,0,-100,0);
+	y = Player->body.position.y - 100;
+	
+	for(i = 0; i < __entity_max; i++)
+	{
+		ent = __entity_list[i];
+		if(ent.inuse && (ent.uid != self->uid))
+		{
+			vec3d_set(t1, ent.body.bounds.x, ent.body.bounds.y+ent.body.bounds.h, ent.body.bounds.z);
+			vec3d_set(t2, ent.body.bounds.x, ent.body.bounds.y+ent.body.bounds.h, ent.body.bounds.z+ent.body.bounds.d);
+			vec3d_set(t3, ent.body.bounds.x+ent.body.bounds.w, ent.body.bounds.y+ent.body.bounds.h, ent.body.bounds.z+ent.body.bounds.d);
+			vec3d_set(t4, ent.body.bounds.x+ent.body.bounds.w, ent.body.bounds.y+ent.body.bounds.h, ent.body.bounds.z);
+			vec3d_add(t1,t1,ent.body.position);
+			vec3d_add(t2,t2,ent.body.position);
+			vec3d_add(t3,t3,ent.body.position);
+			vec3d_add(t4,t4,ent.body.position);
+			if(ray_in_quad(start,dir,t1,t2,t3,t4,&contact))
+			{
+				if(t1.y > y)y = t1.y;
+			}
+		}
+	}
+
+	self->body.position.x = Player->body.position.x;
+	self->body.position.y = y;
+	self->body.position.z = Player->body.position.z;
+
+	if(Player->body.uCheck)
+	{
+		entity_free(self);
+		Player->shadow = 0;
 	}
 }
 
@@ -252,6 +334,7 @@ Entity *build_cube(Vec3D position, Space *space)
     ent->texture = LoadSprite("models/cube_text.png",1024,1024);
     vec3d_cpy(ent->body.position,position);
     cube_set(ent->body.bounds,-1,-1,-1,2,2,2);
+	ent->tang = 1;
 	space_add_body(space,&ent->body);
     return ent;
 }
@@ -268,6 +351,7 @@ Entity *build_ground(Vec3D position, Space *space)
     ent->texture = LoadSprite("models/ground_text.png",1024,1024);
     vec3d_cpy(ent->body.position,position);
     cube_set(ent->body.bounds,-8,-1,-1,16,2,2);
+	ent->tang = 1;
 	space_add_body(space,&ent->body);
     return ent;
 }
