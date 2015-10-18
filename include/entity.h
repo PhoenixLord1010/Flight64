@@ -6,6 +6,8 @@
 #include "sprite.h"
 #include "space.h"
 
+enum STATES {ST_IDLE,ST_WALK,ST_JUMP1,ST_JUMP2,ST_DASH,ST_DEAD};
+
 typedef struct Entity_S
 {
     Obj *objModel;
@@ -15,12 +17,20 @@ typedef struct Entity_S
 	int inuse;
     int uid;		/**<unique id of this entity*/
     char name[128];
+	int state;
     Vec3D acceleration;
     Vec3D rotation;
     Vec3D scale;
     Vec4D color;
+	float accel;
 	int tang;
 	int shadow;
+
+	int busy;
+
+	int health;
+	int healthmax;
+	int invuln;
 }Entity;
 
 /**

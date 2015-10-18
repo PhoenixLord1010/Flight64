@@ -27,6 +27,7 @@ Vec4D vec4d(float x,float y, float z, float w);
  */
 float vec3d_magnitude(Vec3D V);
 void vec3d_normalize(Vec3D *V);
+int vec3d_and(Vec3D V, Vec3D W);
 
 /**
  * basic operations

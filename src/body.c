@@ -31,9 +31,9 @@ void clear_collisions(Body *self)
 	self->collision.d = 0;
 }
 
-void check_collisions(Body *self, Cube a, Cube b)
+void check_collisions(Body *self, Body *other, Cube a, Cube b)
 {
-	if((abs((b.y+b.h)-a.y) <= abs((a.x+a.w)-b.x)) && (abs((b.y+b.h)-a.y) <= abs((b.x+b.w)-a.x)) && (abs((b.y+b.h)-a.y) <= abs((a.z+a.d)-b.z)) && (abs((b.y+b.h)-a.y) <= abs((b.z+b.d)-a.z)) && (abs((b.y+b.h)-a.y) <= abs((a.y+a.h)-b.y)))
+	if((abs((b.y+b.h)-a.y) <= abs((a.x+a.w)-b.x)) && (abs((b.y+b.h)-a.y) <= abs((b.x+b.w)-a.x)) && (abs((b.y+b.h)-a.y) <= abs((a.z+a.d)-b.z)) && (abs((b.y+b.h)-a.y) <= abs((b.z+b.d)-a.z)) && (abs((b.y+b.h)-a.y) <= abs((a.y+a.h)-b.y)) && (self->velocity.y <= other->velocity.y))
 	{
 		self->uCheck = 1;
 		self->collision.h = b.y+b.h;

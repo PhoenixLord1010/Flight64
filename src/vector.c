@@ -20,12 +20,12 @@ Vec4D vec4d(float x,float y, float z, float w)
     return v;
 }
 
-float vec3d_magnitude (Vec3D V)
+float vec3d_magnitude(Vec3D V)
 {
   return sqrt(V.x * V.x + V.y * V.y + V.z * V.z);
 }
 
-void vec3d_normalize (Vec3D *V)
+void vec3d_normalize(Vec3D *V)
 {
   float M;
   if (!V)return;
@@ -38,4 +38,10 @@ void vec3d_normalize (Vec3D *V)
   V->x *= M;
   V->y *= M;
   V->z *= M;
+}
+
+int vec3d_and(Vec3D V, Vec3D W)
+{
+	if((V.x == W.x) && (V.y == W.y) && (V.z == W.z))return 1;
+	else return 0;
 }

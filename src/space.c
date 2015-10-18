@@ -86,7 +86,7 @@ static void space_body_update(Space *space,Body *body)
         vec3d_add(b,b,other->bounds);
 		if (cube_cube_intersection(a,b))
         {
-            check_collisions(body,a,b);
+            check_collisions(body,other,a,b);
         }
     }
 }

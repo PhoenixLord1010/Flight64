@@ -14,7 +14,7 @@ typedef struct
     int  _needsBackoff;
     int  _done;
     Vec3D _stepOffVector;
-	int uCheck, dCheck, lCheck, rCheck, fCheck, bCheck;		/**<collision checks*/
+	int uCheck, uCheck2, dCheck, lCheck, rCheck, fCheck, bCheck;		/**<collision checks*/
 	Cube collision;
 }Body;
 
@@ -31,6 +31,6 @@ void body_reset(Body *body);
 void body_process(Body *body);
 
 void clear_collisions(Body *self);
-void check_collisions(Body *self, Cube a, Cube b);
+void check_collisions(Body *self, Body *other, Cube a, Cube b);
 
 #endif

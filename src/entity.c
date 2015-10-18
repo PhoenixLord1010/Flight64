@@ -144,11 +144,17 @@ Entity *make_player(Vec3D position, Space *space)
     ent->objModel = obj_load("models/player.obj");
     ent->texture = LoadSprite("models/player_text.png",1024,1024);
     ent->think = player_think;
+	ent->state = ST_IDLE;
     vec3d_cpy(ent->body.position,position);
     cube_set(ent->body.bounds,-1,-1.5,-1,2,3,2);
+	ent->accel = 0;
 	ent->tang = 1;
 	space_add_body(space,&ent->body);
 	ent->shadow = 0;
+	ent->busy = 0;
+	ent->healthmax = 5;
+	ent->health = ent->healthmax;
+	ent->invuln = 0;
 	Player = ent;
 	return ent;
 }
@@ -156,112 +162,170 @@ Entity *make_player(Vec3D position, Space *space)
 void player_think(Entity *self)
 {
 	SDL_Event e;
-	float speed = 1;
-	float accel = 0.2;
+	float speed = 0.2;
+	float accel = 0.02;
 	float decel = 0.01;
 	float rot = 4;
-	Vec3D down = {0,-1,0};
+	float grav = -2;
+	float weight = 0.04;
+	float dash = 0.4;
 	
-	/*Collisions*/
-	if(self->body.uCheck)
+	/*Do while alive*/
+	if(self->health > 0)
 	{
-		self->body.velocity.y = 0;
-		self->body.position.y = self->body.collision.h + self->body.bounds.h/2;
-	}
-	else
-	{
-		if(self->body.velocity.y > -2)self->body.velocity.y -= 0.04;
-		if(self->shadow == 0)
+		/*Collisions*/
+		if(self->body.uCheck)
 		{
-			make_shadow(self->body.position);
-			self->shadow++;
+			self->body.velocity.y = 0;
+			self->body.position.y = self->body.collision.h + self->body.bounds.h*0.5;
 		}
-	}
-	if(self->body.lCheck)
-	{
-		self->body.velocity.x = 0;
-		self->body.position.x = self->body.collision.x - self->body.bounds.w/2;
-	}
-	if(self->body.rCheck)
-	{
-		self->body.velocity.x = 0;
-		self->body.position.x = self->body.collision.w + self->body.bounds.w/2;
-	}
-	if(self->body.fCheck)
-	{
-		self->body.velocity.z = 0;
-		self->body.position.z = self->body.collision.z - self->body.bounds.d/2;
-	}
-	if(self->body.bCheck)
-	{
-		self->body.velocity.z = 0;
-		self->body.position.z = self->body.collision.d + self->body.bounds.d/2;
-	}
+		if(self->body.dCheck)
+		{
+			self->body.velocity.y = -2;
+			self->body.position.y = self->body.collision.y - self->body.bounds.h*0.5;
+		}
+		if(self->body.lCheck)
+		{
+			self->body.velocity.x = 0;
+			self->body.position.x = self->body.collision.x - self->body.bounds.w*0.5;
+		}
+		if(self->body.rCheck)
+		{
+			self->body.velocity.x = 0;
+			self->body.position.x = self->body.collision.w + self->body.bounds.w*0.5;
+		}
+		if(self->body.fCheck)
+		{
+			self->body.velocity.z = 0;
+			self->body.position.z = self->body.collision.z - self->body.bounds.d*0.5;
+		}
+		if(self->body.bCheck)
+		{
+			self->body.velocity.z = 0;
+			self->body.position.z = self->body.collision.d + self->body.bounds.d*0.5;
+		}
+		
+		if(self->body.uCheck)
+		{
+			if(vec3d_and(self->body.velocity,vec3d(0,0,0)))
+				self->state = ST_IDLE;
+			else if(self->state != ST_DASH)
+				self->state = ST_WALK;
+		}
 
-	/*Player Inputs*/
-	if(isKeyHeld(SDL_SCANCODE_W) || isKeyHeld(SDL_SCANCODE_S))		/*Move Forward/Back*/
-	{
-		if(isKeyHeld(SDL_SCANCODE_W))
+		if(self->body.uCheck2 && !self->body.uCheck)		/*Walking off Edges*/
 		{
-			if(self->body.velocity.z > -speed)
+			if(self->state != ST_DASH)
 			{
-				vec3d_add(
-						self->body.position,
-						self->body.position,
-                        vec3d(
-                            -sin(self->rotation.y * DEGTORAD) * accel,
-                            0,
-                            -cos(self->rotation.y * DEGTORAD) * accel
-                        ));
+				self->state = ST_JUMP1;
 			}
-			//if(self->body.velocity.z < -speed)self->body.velocity.z = -speed;
 		}
-		if(isKeyHeld(SDL_SCANCODE_S))
-		{
-			if(self->body.velocity.z < speed)
-			{
-				vec3d_add(
-						self->body.position,
-						self->body.position,
-                        vec3d(
-                            sin(self->rotation.y * DEGTORAD) * accel,
-                            0,
-                            cos(self->rotation.y * DEGTORAD) * accel
-                        ));
-			}
-			//if(self->body.velocity.z > speed)self->body.velocity.z = speed;
-		}
-	}
-	else
-	{
-		if(abs(self->body.velocity.z) > decel)
-		{
-			if(self->body.velocity.z >= decel)self->body.velocity.z -= decel;
-			if(self->body.velocity.z <= -decel)self->body.velocity.z += decel;
-		}
-		else self->body.velocity.z = 0;
-	}
 
-	if(isKeyHeld(SDL_SCANCODE_A) || isKeyHeld(SDL_SCANCODE_D))		/*Turn Left/Right*/
-	{
-		if(isKeyHeld(SDL_SCANCODE_A))	/*Left*/
+		/*Player Inputs*/
+		if(self->invuln <= 15)
 		{
-			self->rotation.y += rot;
-		}
-		if(isKeyHeld(SDL_SCANCODE_D))	/*Right*/
-		{
-			self->rotation.y -= rot;
-		}
-	}
+			if(self->state != ST_DASH || !self->busy)
+			{
+				if(isKeyHeld(SDL_SCANCODE_W) || isKeyHeld(SDL_SCANCODE_S))		/*Move Forward/Back*/
+				{
+					if(pow(self->body.velocity.x,2)+pow(self->body.velocity.z,2) < pow(speed,2))
+					{
+						if(isKeyHeld(SDL_SCANCODE_W))		/*Forward*/
+						{
+							self->accel += accel;
+						}
+						if(isKeyHeld(SDL_SCANCODE_S))		/*Back*/
+						{
+							self->accel -= accel;
+						}
+					}
+					else
+					{
+						if(self->accel > 0)self->accel = speed;
+						else self->accel = -speed;
+					}
+				}
+				else
+				{
+					if((pow(self->body.velocity.x,2)+pow(self->body.velocity.z,2)) > pow(decel,2))
+					{
+						if(self->accel > 0)self->accel -= decel;
+						else self->accel += decel;
+					}
+					else
+					{
+						self->accel = 0;
+					}
+				}
+			}
+
+			if(isKeyHeld(SDL_SCANCODE_A) || isKeyHeld(SDL_SCANCODE_D))		/*Turn Left/Right*/
+			{
+				if(isKeyHeld(SDL_SCANCODE_A))	/*Left*/
+				{
+					self->rotation.y += rot;
+				}
+				if(isKeyHeld(SDL_SCANCODE_D))	/*Right*/
+				{
+					self->rotation.y -= rot;
+				}
+			}
 	
-	if(isKeyHeld(SDL_SCANCODE_SPACE) && self->body.uCheck)		/*Jump*/
-	{
-		self->body.velocity.y += 0.5;
-		if(self->shadow == 0)
-		{
-			make_shadow(self->body.position);
-			self->shadow++;
+			if(isKeyHeld(SDL_SCANCODE_SPACE) && self->body.velocity.y <= 0 && self->state != ST_JUMP2)		/*Jump*/
+			{
+				if(self->state == ST_JUMP1)
+				{
+					self->state = ST_JUMP2;
+					self->body.velocity.y = 0.6;
+				}
+				else 
+				{
+					self->state = ST_JUMP1;
+					self->body.velocity.y = 0.5;
+				}
+				if(self->shadow == 0)
+				{
+					make_shadow(self->body.position);
+					self->shadow++;
+				}
+			}
+
+			if(isKeyHeld(SDL_SCANCODE_SPACE) && self->body.velocity.y < 0)		/*Float*/
+			{
+				weight = 0.001;
+			}
+
+			if(isKeyHeld(SDL_SCANCODE_O) && self->body.uCheck && !self->busy)	/*Dash*/
+			{
+				self->state = ST_DASH;
+				self->busy = 15;
+			}
+			if(self->state == ST_DASH && self->busy)
+			{
+				self->accel = dash;
+			}
 		}
+
+		if(!self->body.uCheck)		/*In the Air*/
+		{
+			if(self->body.velocity.y > grav)self->body.velocity.y -= weight;
+			if(self->shadow == 0)
+			{
+				make_shadow(self->body.position);
+				self->shadow++;
+			}
+		}
+
+		self->body.velocity.x = -sin(self->rotation.y * DEGTORAD) * self->accel;
+		self->body.velocity.z = -cos(self->rotation.y * DEGTORAD) * self->accel;
+		if(self->body.lCheck && self->body.velocity.x > 0)self->body.velocity.x = 0;
+		if(self->body.rCheck && self->body.velocity.x < 0)self->body.velocity.x = 0;
+		if(self->body.fCheck && self->body.velocity.z > 0)self->body.velocity.z = 0;
+		if(self->body.bCheck && self->body.velocity.z < 0)self->body.velocity.z = 0;
+
+		if(self->busy > 0)self->busy--;		/*Attack Counter*/
+		if(self->invuln > 0)self->invuln--;		/*Invulnerability Counter*/
+		self->body.uCheck2 = self->body.uCheck;		/*Last frame's uCheck*/
 	}
 }
 
