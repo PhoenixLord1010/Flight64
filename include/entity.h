@@ -6,7 +6,7 @@
 #include "sprite.h"
 #include "space.h"
 
-enum STATES {ST_IDLE,ST_WALK,ST_JUMP1,ST_JUMP2,ST_DASH,ST_DEAD};
+enum STATES {ST_IDLE,ST_WALK,ST_JUMP1,ST_JUMP2,ST_DASH,ST_POUND,ST_DEAD};
 
 typedef struct Entity_S
 {
@@ -15,6 +15,7 @@ typedef struct Entity_S
     Body body;
 	void (*think) (struct ENTITY_S *self);	/**<think function*/
 	int inuse;
+	int shown;
     int uid;		/**<unique id of this entity*/
     char name[128];
 	int state;
@@ -23,7 +24,6 @@ typedef struct Entity_S
     Vec3D scale;
     Vec4D color;
 	float accel;
-	int tang;
 	int shadow;
 
 	int busy;
@@ -67,6 +67,8 @@ void update_entities();
 
 Entity *make_player(Vec3D position, Space *space);
 void player_think(Entity *self);
+void make_spear(Space *space);
+void spear_think(Entity *self);
 void make_shadow(Vec3D position);
 void shadow_think(Entity *self);
 Entity *build_cube(Vec3D position, Space *space);

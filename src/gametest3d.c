@@ -37,6 +37,7 @@
 #define SCREEN_HEIGHT 768
 #include <string.h>
 
+extern Entity *Player;
 
 void set_camera(Vec3D position, Vec3D rotation);
 void init_all();
@@ -176,6 +177,13 @@ int main(int argc, char *argv[])
 
 		update_level(space);
 		UpdateKeyboard();
+
+		for(i = 0; i < 10; i++)
+		{
+			if(Player->body.position.z < (cameraPosition.z - 17))cameraPosition.z-=0.1;
+			if(Player->body.position.z > (cameraPosition.z - 13))cameraPosition.z+=0.1;
+		}
+
         graphics3d_next_frame();
     } 
     return 0;

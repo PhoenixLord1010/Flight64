@@ -69,6 +69,7 @@ Entity *entity_new()
         {
             memset(&__entity_list[i],0,sizeof(Entity));
             __entity_list[i].inuse = 1;
+			__entity_list[i].shown = 1;
             vec3d_set(__entity_list[i].scale,1,1,1);
             vec4d_set(__entity_list[i].color,1,1,1,1);
 			__entity_list[i].uid = __uid;
@@ -97,14 +98,15 @@ void entity_draw(Entity *ent)
     {
         return;
     }
-	obj_draw(
-		ent->objModel,
-		ent->body.position,
-		ent->rotation,
-		ent->scale,
-		ent->color,
-		ent->texture
-	);
+	if(ent->shown)
+		obj_draw(
+			ent->objModel,
+			ent->body.position,
+			ent->rotation,
+			ent->scale,
+			ent->color,
+			ent->texture
+		);
 }
 
 int entity_is_entity(void *data)
@@ -147,8 +149,8 @@ Entity *make_player(Vec3D position, Space *space)
 	ent->state = ST_IDLE;
     vec3d_cpy(ent->body.position,position);
     cube_set(ent->body.bounds,-1,-1.5,-1,2,3,2);
+	ent->body.tang = 1;
 	ent->accel = 0;
-	ent->tang = 1;
 	space_add_body(space,&ent->body);
 	ent->shadow = 0;
 	ent->busy = 0;
@@ -156,12 +158,12 @@ Entity *make_player(Vec3D position, Space *space)
 	ent->health = ent->healthmax;
 	ent->invuln = 0;
 	Player = ent;
+	make_spear(space);
 	return ent;
 }
 
 void player_think(Entity *self)
 {
-	SDL_Event e;
 	float speed = 0.2;
 	float accel = 0.02;
 	float decel = 0.01;
@@ -205,7 +207,7 @@ void player_think(Entity *self)
 			self->body.position.z = self->body.collision.d + self->body.bounds.d*0.5;
 		}
 		
-		if(self->body.uCheck)
+		if(self->body.uCheck && !self->busy)
 		{
 			if(vec3d_and(self->body.velocity,vec3d(0,0,0)))
 				self->state = ST_IDLE;
@@ -224,7 +226,7 @@ void player_think(Entity *self)
 		/*Player Inputs*/
 		if(self->invuln <= 15)
 		{
-			if(self->state != ST_DASH || !self->busy)
+			if((self->state != ST_DASH && self->state != ST_POUND) || !self->busy)
 			{
 				if(isKeyHeld(SDL_SCANCODE_W) || isKeyHeld(SDL_SCANCODE_S))		/*Move Forward/Back*/
 				{
@@ -259,7 +261,7 @@ void player_think(Entity *self)
 				}
 			}
 
-			if(isKeyHeld(SDL_SCANCODE_A) || isKeyHeld(SDL_SCANCODE_D))		/*Turn Left/Right*/
+			if((isKeyHeld(SDL_SCANCODE_A) || isKeyHeld(SDL_SCANCODE_D)) && self->state != ST_POUND)		/*Turn Left/Right*/
 			{
 				if(isKeyHeld(SDL_SCANCODE_A))	/*Left*/
 				{
@@ -271,7 +273,7 @@ void player_think(Entity *self)
 				}
 			}
 	
-			if(isKeyHeld(SDL_SCANCODE_SPACE) && self->body.velocity.y <= 0 && self->state != ST_JUMP2)		/*Jump*/
+			if(isKeyHeld(SDL_SCANCODE_SPACE) && self->body.velocity.y <= 0 && self->state != ST_JUMP2 && self->state != ST_POUND)	/*Jump*/
 			{
 				if(self->state == ST_JUMP1)
 				{
@@ -290,19 +292,37 @@ void player_think(Entity *self)
 				}
 			}
 
-			if(isKeyHeld(SDL_SCANCODE_SPACE) && self->body.velocity.y < 0)		/*Float*/
+			if(isKeyHeld(SDL_SCANCODE_SPACE) && self->body.velocity.y < 0 && self->state != ST_POUND)		/*Float*/
 			{
 				weight = 0.001;
 			}
 
-			if(isKeyHeld(SDL_SCANCODE_O) && self->body.uCheck && !self->busy)	/*Dash*/
+			if(isKeyHeld(SDL_SCANCODE_O) && !self->busy)	
 			{
-				self->state = ST_DASH;
-				self->busy = 15;
+				if(self->body.uCheck)		/*Dash*/
+				{
+					self->state = ST_DASH;
+					self->busy = 15;
+				}
+				else						/*Pound*/
+				{
+					self->state = ST_POUND;
+					self->busy = 60;
+				}
 			}
 			if(self->state == ST_DASH && self->busy)
 			{
 				self->accel = dash;
+			}
+			if(self->state == ST_POUND && self->busy)
+			{
+				self->accel = 0;
+				if(!self->body.uCheck)self->body.velocity.y = -1;
+				if(self->body.uCheck)
+				{
+					//self->state = ST_IDLE;
+					//self->busy = 0;
+				}
 			}
 		}
 
@@ -329,6 +349,118 @@ void player_think(Entity *self)
 	}
 }
 
+void make_spear(Space *space)
+{
+	Entity *ent;
+    ent = entity_new();
+    if (!ent)return;
+
+    ent->objModel = obj_load("models/spear.obj");
+    ent->texture = LoadSprite("models/spear_text.png",1024,1024);
+    ent->think = spear_think;
+	ent->shown = 0;
+	vec3d_cpy(ent->body.position,
+			vec3d((Player->body.position.x+(-sin(ent->rotation.y * DEGTORAD))),
+			Player->body.position.y,
+			(Player->body.position.z+(-cos(ent->rotation.y * DEGTORAD)))));
+    cube_set(ent->body.bounds,-0.375,-0.375,-1.25,0.75,0.75,2.5);
+	ent->body.tang = 0;
+	ent->accel = 0;
+	space_add_body(space,&ent->body);
+	ent->busy = 0;
+	ent->invuln = 0;
+	return;
+}
+
+void spear_think(Entity *self)
+{
+	float dist;
+	
+	if(Player == NULL)entity_free(self);
+	
+	/*Move with Player*/
+	if(self->busy <= 0)
+	{
+		vec3d_cpy(self->body.position,
+				vec3d((Player->body.position.x+(-sin(self->rotation.y * DEGTORAD))),
+				Player->body.position.y,
+				(Player->body.position.z+(-cos(self->rotation.y * DEGTORAD)))));
+		vec3d_cpy(self->rotation,Player->rotation);
+	}
+
+	if(Player->health > 0)
+	{
+		if(isKeyHeld(SDL_SCANCODE_P) && self->busy <= 0 && self->busy > -11)
+		{
+			self->busy--;
+		}
+		else
+		{
+			if(self->busy < -10)
+			{
+				self->shown = 1;
+				self->busy = 30;
+				self->shadow = 21;
+			}
+			if(self->busy < 0)
+			{
+				self->shown = 1;
+				self->busy = 20;
+				self->shadow = 16;
+			}
+		}
+		if(isKeyHeld(SDL_SCANCODE_O) && !self->busy)
+		{
+			if(Player->body.uCheck)
+			{
+				self->shown = 1;
+				self->busy = 40;
+			}
+			else
+			{
+				self->shown = 1;
+				self->busy = 60;
+			}
+		}
+
+		if(self->busy > 12)
+		{
+			if(Player->state != ST_DASH && Player->state != ST_POUND)
+			{
+				vec3d_cpy(self->rotation,Player->rotation);
+				dist = sqrt(pow(self->body.position.x - Player->body.position.x,2) + pow(self->body.position.z - Player->body.position.z,2));
+				self->body.position.x = (-sin(self->rotation.y * DEGTORAD) * dist) + Player->body.position.x;
+				self->body.position.y = Player->body.position.y;
+				self->body.position.z = (-cos(self->rotation.y * DEGTORAD) * dist) + Player->body.position.z;
+				self->body.velocity.x = -sin(self->rotation.y * DEGTORAD) * (self->busy-self->shadow) * 0.05 + Player->body.velocity.x;
+				self->body.velocity.z = -cos(self->rotation.y * DEGTORAD) * (self->busy-self->shadow) * 0.05 + Player->body.velocity.z;
+			}
+			else if(Player->state == ST_DASH)
+			{
+				vec3d_cpy(self->rotation,Player->rotation);
+				vec3d_cpy(self->body.position,
+						vec3d((Player->body.position.x + (-sin(self->rotation.y * DEGTORAD) * 2)),
+						Player->body.position.y,
+						(Player->body.position.z + (-cos(self->rotation.y * DEGTORAD) * 2))));
+			}
+			else
+			{
+				vec3d_cpy(self->rotation,Player->rotation);
+				vec3d_cpy(self->body.position,
+						vec3d((Player->body.position.x + (-sin(self->rotation.y * DEGTORAD) * 2)),
+						Player->body.position.y,
+						(Player->body.position.z + (-cos(self->rotation.y * DEGTORAD) * 2))));
+			}
+		}
+		else		/*Cooldown*/
+		{
+			self->shown = 0;
+		}
+
+		if(self->busy > 0)self->busy--;
+	}
+}
+
 void make_shadow(Vec3D position)
 {
 	Entity *ent;
@@ -340,7 +472,7 @@ void make_shadow(Vec3D position)
     ent->think = shadow_think;
     vec3d_cpy(ent->body.position,position);
 	cube_set(ent->body.bounds,-1,-0.05,-1,2,0.1,2);
-	ent->tang = 0;
+	ent->body.tang = 0;
 	return;
 }
 
@@ -398,7 +530,7 @@ Entity *build_cube(Vec3D position, Space *space)
     ent->texture = LoadSprite("models/cube_text.png",1024,1024);
     vec3d_cpy(ent->body.position,position);
     cube_set(ent->body.bounds,-1,-1,-1,2,2,2);
-	ent->tang = 1;
+	ent->body.tang = 1;
 	space_add_body(space,&ent->body);
     return ent;
 }
@@ -415,7 +547,7 @@ Entity *build_ground(Vec3D position, Space *space)
     ent->texture = LoadSprite("models/ground_text.png",1024,1024);
     vec3d_cpy(ent->body.position,position);
     cube_set(ent->body.bounds,-8,-1,-1,16,2,2);
-	ent->tang = 1;
+	ent->body.tang = 1;
 	space_add_body(space,&ent->body);
     return ent;
 }
