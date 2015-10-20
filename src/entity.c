@@ -150,13 +150,16 @@ Entity *make_player(Vec3D position, Space *space)
     vec3d_cpy(ent->body.position,position);
     cube_set(ent->body.bounds,-1,-1.5,-1,2,3,2);
 	ent->body.tang = 1;
+	ent->body.hit = 0;
+	ent->body.hurt = 0;
+	ent->body.type = ST_PLAYER;
 	ent->accel = 0;
-	space_add_body(space,&ent->body);
 	ent->shadow = 0;
 	ent->busy = 0;
 	ent->healthmax = 5;
 	ent->health = ent->healthmax;
 	ent->invuln = 0;
+	space_add_body(space,&ent->body);
 	Player = ent;
 	make_spear(space);
 	return ent;
@@ -172,6 +175,17 @@ void player_think(Entity *self)
 	float weight = 0.04;
 	float dash = 0.4;
 	
+	if(self->body.hurt && !self->invuln)
+	{
+		self->health--;
+		self->body.hurt--;
+		self->invuln = 30;
+		self->rotation.y = atan2(self->body.position.x-self->body.hitvec.x,self->body.position.z-self->body.hitvec.z) * RADTODEG;
+		self->body.velocity.y = 0.5;
+		self->body.uCheck = 0;
+		self->accel = -0.2;
+	}
+
 	/*Do while alive*/
 	if(self->health > 0)
 	{
@@ -297,7 +311,7 @@ void player_think(Entity *self)
 				weight = 0.001;
 			}
 
-			if(isKeyHeld(SDL_SCANCODE_O) && !self->busy)	
+			if(isKeyHeld(SDL_SCANCODE_I) && !self->busy)	
 			{
 				if(self->body.uCheck)		/*Dash*/
 				{
@@ -307,7 +321,7 @@ void player_think(Entity *self)
 				else						/*Pound*/
 				{
 					self->state = ST_POUND;
-					self->busy = 60;
+					self->busy = 40;
 				}
 			}
 			if(self->state == ST_DASH && self->busy)
@@ -317,12 +331,7 @@ void player_think(Entity *self)
 			if(self->state == ST_POUND && self->busy)
 			{
 				self->accel = 0;
-				if(!self->body.uCheck)self->body.velocity.y = -1;
-				if(self->body.uCheck)
-				{
-					//self->state = ST_IDLE;
-					//self->busy = 0;
-				}
+				if(!self->body.uCheck)self->body.velocity.y = -0.8;
 			}
 		}
 
@@ -336,6 +345,7 @@ void player_think(Entity *self)
 			}
 		}
 
+		/*Movement*/
 		self->body.velocity.x = -sin(self->rotation.y * DEGTORAD) * self->accel;
 		self->body.velocity.z = -cos(self->rotation.y * DEGTORAD) * self->accel;
 		if(self->body.lCheck && self->body.velocity.x > 0)self->body.velocity.x = 0;
@@ -346,6 +356,9 @@ void player_think(Entity *self)
 		if(self->busy > 0)self->busy--;		/*Attack Counter*/
 		if(self->invuln > 0)self->invuln--;		/*Invulnerability Counter*/
 		self->body.uCheck2 = self->body.uCheck;		/*Last frame's uCheck*/
+
+		if(self->rotation.y > 180)self->rotation.y -= 360;	/*Rotation Fix*/
+		if(self->rotation.y <= -180)self->rotation.y += 360;
 	}
 }
 
@@ -355,7 +368,9 @@ void make_spear(Space *space)
     ent = entity_new();
     if (!ent)return;
 
-    ent->objModel = obj_load("models/spear.obj");
+    ent->objModel1 = obj_load("models/spear.obj");
+	ent->objModel2 = obj_load("models/spear2.obj");
+	ent->objModel = ent->objModel1;
     ent->texture = LoadSprite("models/spear_text.png",1024,1024);
     ent->think = spear_think;
 	ent->shown = 0;
@@ -363,18 +378,21 @@ void make_spear(Space *space)
 			vec3d((Player->body.position.x+(-sin(ent->rotation.y * DEGTORAD))),
 			Player->body.position.y,
 			(Player->body.position.z+(-cos(ent->rotation.y * DEGTORAD)))));
-    cube_set(ent->body.bounds,-0.375,-0.375,-1.25,0.75,0.75,2.5);
+    cube_set(ent->body.bounds,-0.375,-0.375,-0.375,0.75,0.75,0.75);
 	ent->body.tang = 0;
+	ent->body.hit = 0;
+	ent->body.type = ST_PLAYER;
 	ent->accel = 0;
-	space_add_body(space,&ent->body);
 	ent->busy = 0;
 	ent->invuln = 0;
+	space_add_body(space,&ent->body);
 	return;
 }
 
 void spear_think(Entity *self)
 {
 	float dist;
+	Obj *s;
 	
 	if(Player == NULL)entity_free(self);
 	
@@ -386,11 +404,12 @@ void spear_think(Entity *self)
 				Player->body.position.y,
 				(Player->body.position.z+(-cos(self->rotation.y * DEGTORAD)))));
 		vec3d_cpy(self->rotation,Player->rotation);
+		self->objModel = self->objModel1;
 	}
 
 	if(Player->health > 0)
 	{
-		if(isKeyHeld(SDL_SCANCODE_P) && self->busy <= 0 && self->busy > -11)
+		if(isKeyHeld(SDL_SCANCODE_O) && self->busy <= 0 && self->busy > -11)
 		{
 			self->busy--;
 		}
@@ -399,28 +418,41 @@ void spear_think(Entity *self)
 			if(self->busy < -10)
 			{
 				self->shown = 1;
+				self->body.hit = 1;
 				self->busy = 30;
 				self->shadow = 21;
 			}
 			if(self->busy < 0)
 			{
 				self->shown = 1;
+				self->body.hit = 1;
 				self->busy = 20;
 				self->shadow = 16;
 			}
 		}
-		if(isKeyHeld(SDL_SCANCODE_O) && !self->busy)
+		if(isKeyHeld(SDL_SCANCODE_I) && !self->busy)
 		{
 			if(Player->body.uCheck)
 			{
 				self->shown = 1;
+				self->body.hit = 1;
 				self->busy = 40;
+				self->state = ST_DASH;
 			}
 			else
 			{
+				self->objModel = self->objModel2;
 				self->shown = 1;
-				self->busy = 60;
+				self->body.hit = 1;
+				self->busy = 40;
+				self->state = ST_POUND;
 			}
+		}
+
+		if(Player->state != ST_DASH && self->state == ST_DASH)
+		{
+			self->busy = 0;
+			self->state = ST_IDLE;
 		}
 
 		if(self->busy > 12)
@@ -448,13 +480,20 @@ void spear_think(Entity *self)
 				vec3d_cpy(self->rotation,Player->rotation);
 				vec3d_cpy(self->body.position,
 						vec3d((Player->body.position.x + (-sin(self->rotation.y * DEGTORAD) * 2)),
-						Player->body.position.y,
+						Player->body.position.y - 0.6,
 						(Player->body.position.z + (-cos(self->rotation.y * DEGTORAD) * 2))));
 			}
 		}
 		else		/*Cooldown*/
 		{
 			self->shown = 0;
+			self->body.hit = 0;
+		}
+
+		if(Player->invuln)
+		{
+			self->shown = 0;
+			self->body.hit = 0;
 		}
 
 		if(self->busy > 0)self->busy--;
@@ -472,7 +511,7 @@ void make_shadow(Vec3D position)
     ent->think = shadow_think;
     vec3d_cpy(ent->body.position,position);
 	cube_set(ent->body.bounds,-1,-0.05,-1,2,0.1,2);
-	ent->body.tang = 0;
+	//ent->body.hit = 0;
 	return;
 }
 
@@ -518,6 +557,132 @@ void shadow_think(Entity *self)
 	}
 }
 
+Entity *spawn_snake(Vec3D position, Space *space, int ck1)
+{
+	Entity *ent;
+    ent = entity_new();
+    if (!ent)return NULL;
+
+    ent->objModel = obj_load("models/snake.obj");
+    ent->texture = LoadSprite("models/snake_text.png",1024,1024);
+    ent->think = snake_think;
+	ent->state = ST_WALK;
+    vec3d_cpy(ent->body.position,position);
+    cube_set(ent->body.bounds,-0.5,-1,-0.5,1,2,1);
+	ent->body.tang = 1;
+	ent->body.hit = 1;
+	ent->body.hurt = 0;
+	ent->body.type = ST_ENEMY;
+	ent->accel = 0;
+	space_add_body(space,&ent->body);
+	ent->busy = 0;
+	ent->ck1 = ck1;		/*Rotation Direction*/
+	ent->health = 1;
+	ent->invuln = 0;
+	return ent;
+}
+
+void snake_think(Entity *self)
+{
+	float speed = 0.1;
+	float accel = 0.02;
+	float dist = 0;
+	float deg = 0;
+	
+	if(self->body.hurt)
+	{
+		self->health--;
+	}
+	
+	if(self->health > 0)
+	{
+		dist = sqrt(pow(Player->body.position.x-self->body.position.x,2)+pow(Player->body.position.y-self->body.position.y,2)+pow(Player->body.position.z-self->body.position.z,2));
+		deg = atan2(self->body.position.x-Player->body.position.x,self->body.position.z-Player->body.position.z) * RADTODEG;
+		if(dist < 10 && self->state == ST_WALK)
+		{
+			self->state = ST_JUMP1;
+			self->body.uCheck = 0;
+			self->body.velocity.y += 0.5;
+		}
+
+		/*Movement*/
+		if(self->state == ST_WALK)
+		{
+			if(self->ck1)self->rotation.y -= 3;
+			else self->rotation.y += 3;
+			self->body.velocity.x = -sin(self->rotation.y * DEGTORAD) * speed;
+			self->body.velocity.z = -cos(self->rotation.y * DEGTORAD) * speed;
+		}
+
+		if(self->state == ST_JUMP1)
+		{
+			if(abs(deg - self->rotation.y) < 5)self->rotation.y = deg;
+			if(((deg - self->rotation.y < 0) && (deg - self->rotation.y > -180)) || (deg - self->rotation.y >= 180))self->rotation.y -= 4;
+			else self->rotation.y += 4;
+			if(!self->body.uCheck)
+			{
+				self->body.velocity.x = 0;
+				self->body.velocity.z = 0;
+			}
+			else
+			{
+				self->body.velocity.x = -sin(self->rotation.y * DEGTORAD) * speed;
+				self->body.velocity.z = -cos(self->rotation.y * DEGTORAD) * speed;
+			}
+		}
+		
+		/*Collisions*/
+		if(self->body.uCheck)
+		{
+			self->body.velocity.y = 0;
+			self->body.position.y = self->body.collision.h + self->body.bounds.h*0.5;
+		}
+		else
+		{
+			if(self->body.velocity.y > -2)self->body.velocity.y -= 0.05;
+		}
+
+		if(self->body.lCheck)
+		{
+			self->body.velocity.x = 0;
+			self->body.position.x = self->body.collision.x - self->body.bounds.w*0.5;
+		}
+		if(self->body.rCheck)
+		{
+			self->body.velocity.x = 0;
+			self->body.position.x = self->body.collision.w + self->body.bounds.w*0.5;
+		}
+		if(self->body.fCheck)
+		{
+			self->body.velocity.z = 0;
+			self->body.position.z = self->body.collision.z - self->body.bounds.d*0.5;
+		}
+		if(self->body.bCheck)
+		{
+			self->body.velocity.z = 0;
+			self->body.position.z = self->body.collision.d + self->body.bounds.d*0.5;
+		}
+		if(self->rotation.y > 180)self->rotation.y -= 360;	/*Rotation Fix*/
+		if(self->rotation.y <= -180)self->rotation.y += 360;
+	}
+	else
+	{
+		if(self->state != ST_DEAD)
+		{
+			self->body.velocity.y = 1;
+			self->state = ST_DEAD;
+			self->body.tang = 0;
+			self->body.hit = 0;
+		}
+		vec3d_set(self->rotation,180,self->rotation.y,0);
+		self->body.velocity.x = 0;
+		self->body.velocity.y -= 0.1;
+		self->body.velocity.z = 0;
+	}
+
+	if(self->body.position.y < -20)entity_free(self);
+}
+
 Entity *build_cube(Vec3D position, Space *space)
 {
     Entity *ent;
@@ -531,6 +696,7 @@ Entity *build_cube(Vec3D position, Space *space)
     vec3d_cpy(ent->body.position,position);
     cube_set(ent->body.bounds,-1,-1,-1,2,2,2);
 	ent->body.tang = 1;
+	//ent->body.hit = 0;
 	space_add_body(space,&ent->body);
     return ent;
 }
@@ -548,8 +714,21 @@ Entity *build_ground(Vec3D position, Space *space)
     vec3d_cpy(ent->body.position,position);
     cube_set(ent->body.bounds,-8,-1,-1,16,2,2);
 	ent->body.tang = 1;
+	//ent->body.hit = 0;
 	space_add_body(space,&ent->body);
     return ent;
+}
+
+void *build_road(Vec3D position, Space *space, int a)
+{	
+	int i;
+	
+	for(i = 0; i < a; i++)
+	{
+		vec3d_add(position,position,vec3d(0,0,-2));
+		build_ground(position, space);
+	}
+	return;
 }
 
 

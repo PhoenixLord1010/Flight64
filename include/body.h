@@ -5,6 +5,8 @@
 #include "collisions.h"
 #include "mgl_callback.h"
 
+enum TYPES {ST_PLAYER,ST_ENEMY};
+
 typedef struct
 {
     Vec3D position;
@@ -15,8 +17,12 @@ typedef struct
     int  _done;
     Vec3D _stepOffVector;
 	int uCheck, uCheck2, dCheck, lCheck, rCheck, fCheck, bCheck;		/**<collision checks*/
-	Cube collision;
-	int tang;
+	Cube collision;		/**<collision axis points*/
+	int tang;			/**<is this tangible?*/
+	int hit;			/**<is this a hitbox?*/
+	int hurt;			/**<collided with hitbox?*/
+	Vec3D hitvec;		/**<hitbox collision location*/
+	int type;			/**<player or enemy*/
 }Body;
 
 /**

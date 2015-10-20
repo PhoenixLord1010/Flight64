@@ -11,6 +11,8 @@ enum STATES {ST_IDLE,ST_WALK,ST_JUMP1,ST_JUMP2,ST_DASH,ST_POUND,ST_DEAD};
 typedef struct Entity_S
 {
     Obj *objModel;
+	Obj *objModel1;
+	Obj *objModel2;
     Sprite *texture;    /**<object texture*/
     Body body;
 	void (*think) (struct ENTITY_S *self);	/**<think function*/
@@ -27,6 +29,7 @@ typedef struct Entity_S
 	int shadow;
 
 	int busy;
+	int ck1,ck2;
 
 	int health;
 	int healthmax;
@@ -71,8 +74,11 @@ void make_spear(Space *space);
 void spear_think(Entity *self);
 void make_shadow(Vec3D position);
 void shadow_think(Entity *self);
+Entity *spawn_snake(Vec3D position, Space *space, int ck1);
+void snake_think(Entity *self);
 Entity *build_cube(Vec3D position, Space *space);
 Entity *build_ground(Vec3D position, Space *space);
+void *build_road(Vec3D position, Space *space, int a);
 
 /*Keyboard Input Stuff*/
 void InitKeyboard();
