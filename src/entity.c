@@ -10,6 +10,7 @@ static Entity *__entity_list = NULL;
 static int __entity_max = 0;
 static int __entity_initialized = 0;
 static int __uid = 0;
+
 Entity *Player = NULL;
 
 int KeyCount;
@@ -301,7 +302,7 @@ void player_think(Entity *self)
 				}
 				if(self->shadow == 0)
 				{
-					make_shadow(self->body.position);
+					make_shadow(&self->body);
 					self->shadow++;
 				}
 			}
@@ -340,7 +341,7 @@ void player_think(Entity *self)
 			if(self->body.velocity.y > grav)self->body.velocity.y -= weight;
 			if(self->shadow == 0)
 			{
-				make_shadow(self->body.position);
+				make_shadow(&self->body);
 				self->shadow++;
 			}
 		}
@@ -500,7 +501,7 @@ void spear_think(Entity *self)
 	}
 }
 
-void make_shadow(Vec3D position)
+void make_shadow(Body *owner)
 {
 	Entity *ent;
     ent = entity_new();
@@ -509,9 +510,9 @@ void make_shadow(Vec3D position)
     ent->objModel = obj_load("models/shadow.obj");
     ent->texture = LoadSprite("models/shadow_text.png",1024,1024);
     ent->think = shadow_think;
-    vec3d_cpy(ent->body.position,position);
+	vec3d_cpy(ent->body.position,owner->position);
 	cube_set(ent->body.bounds,-1,-0.05,-1,2,0.1,2);
-	//ent->body.hit = 0;
+	ent->owner = owner;
 	return;
 }
 
@@ -522,9 +523,10 @@ void shadow_think(Entity *self)
 	Entity ent;
 	Vec3D start,dir,t1,t2,t3,t4,contact;
 
-	vec3d_set(start,Player->body.position.x,Player->body.position.y + Player->body.bounds.y,Player->body.position.z);
+	vec3d_set(start,self->owner->position.x,self->owner->position.y + self->owner->bounds.y,self->owner->position.z);
 	vec3d_set(dir,0,-100,0);
-	y = Player->body.position.y - 100;
+	y = self->owner->position.y - 100;
+
 	
 	for(i = 0; i < __entity_max; i++)
 	{
@@ -546,15 +548,9 @@ void shadow_think(Entity *self)
 		}
 	}
 
-	self->body.position.x = Player->body.position.x;
-	self->body.position.y = y;
-	self->body.position.z = Player->body.position.z;
-
-	if(Player->body.uCheck)
-	{
-		entity_free(self);
-		Player->shadow = 0;
-	}
+	self->body.position.x = self->owner->position.x;
+	self->body.position.y = y + 0.2;
+	self->body.position.z = self->owner->position.z;
 }
 
 Entity *spawn_snake(Vec3D position, Space *space, int ck1)
@@ -573,12 +569,9 @@ Entity *spawn_snake(Vec3D position, Space *space, int ck1)
 	ent->body.hit = 1;
 	ent->body.hurt = 0;
 	ent->body.type = ST_ENEMY;
-	ent->accel = 0;
 	space_add_body(space,&ent->body);
-	ent->busy = 0;
 	ent->ck1 = ck1;		/*Rotation Direction*/
 	ent->health = 1;
-	ent->invuln = 0;
 	return ent;
 }
 
@@ -683,6 +676,96 @@ void snake_think(Entity *self)
 	if(self->body.position.y < -20)entity_free(self);
 }
 
+Entity *spawn_eye(Vec3D position, Space *space, int ck1)
+{
+	Entity *ent;
+    ent = entity_new();
+    if (!ent)return NULL;
+
+    ent->objModel = obj_load("models/eye.obj");
+    ent->texture = LoadSprite("models/eye_text.png",1024,1024);
+    ent->think = eye_think;
+	ent->state = ST_IDLE;
+    vec3d_cpy(ent->body.position,position);
+    cube_set(ent->body.bounds,-1,-1,-1,2,2,2);
+	ent->body.tang = 1;
+	ent->body.hit = 1;
+	ent->body.hurt = 0;
+	ent->body.type = ST_ENEMY;
+	space_add_body(space,&ent->body);
+	ent->ck1 = ck1;
+	ent->health = 1;
+	make_shadow(&ent->body);
+	
+	return ent;
+}
+
+void eye_think(Entity *self)
+{
+	if(self->body.hurt)
+	{
+		self->health--;
+	}
+
+	if(self->health > 0)
+	{
+		if(self->ck1)
+		{
+			self->rotation.y = -90;
+			self->body.velocity.x = 0.1;
+		}
+		else
+		{
+			self->rotation.y = 90;
+			self->body.velocity.x = -0.1;
+		}
+		self->body.velocity.y = sin(self->body.position.x) * 0.2;
+		self->body.velocity.z = 0;
+	}
+	else
+	{
+		if(self->state != ST_DEAD)
+		{
+			self->body.velocity.y = 1;
+			self->state = ST_DEAD;
+			self->body.tang = 0;
+			self->body.hit = 0;
+		}
+		vec3d_set(self->rotation,180,self->rotation.y,0);
+		self->body.velocity.x = 0;
+		self->body.velocity.y -= 0.1;
+		self->body.velocity.z = 0;
+	}
+
+	if(self->body.position.y < -20 || self->body.position.x < -20 || self->body.position.x > 30)entity_free(self);
+}
+
+Entity *eye_spawner(Vec3D position, Space *space, int ck1, int ck2)
+{
+	Entity *ent;
+    ent = entity_new();
+    if (!ent)return NULL;
+
+    ent->think = eye_spawner_think;
+	ent->shown = 0;
+	vec3d_cpy(ent->body.position,position);
+    ent->space = space;
+	ent->ck1 = ck1;
+	ent->ck2 = ck2;
+	ent->busy = 0;
+	return ent;
+}
+
+void eye_spawner_think(Entity *self)
+{
+	if(!self->busy)
+	{
+		spawn_eye(self->body.position,self->space,self->ck1);
+		self->busy = self->ck2;
+	}
+	else self->busy--;
+}
+
 Entity *build_cube(Vec3D position, Space *space)
 {
     Entity *ent;
@@ -696,7 +779,6 @@ Entity *build_cube(Vec3D position, Space *space)
     vec3d_cpy(ent->body.position,position);
     cube_set(ent->body.bounds,-1,-1,-1,2,2,2);
 	ent->body.tang = 1;
-	//ent->body.hit = 0;
 	space_add_body(space,&ent->body);
     return ent;
 }
@@ -714,7 +796,6 @@ Entity *build_ground(Vec3D position, Space *space)
     vec3d_cpy(ent->body.position,position);
     cube_set(ent->body.bounds,-8,-1,-1,16,2,2);
 	ent->body.tang = 1;
-	//ent->body.hit = 0;
 	space_add_body(space,&ent->body);
     return ent;
 }

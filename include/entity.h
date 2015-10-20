@@ -27,6 +27,8 @@ typedef struct Entity_S
     Vec4D color;
 	float accel;
 	int shadow;
+	Body *owner;
+	Space *space;
 
 	int busy;
 	int ck1,ck2;
@@ -72,10 +74,14 @@ Entity *make_player(Vec3D position, Space *space);
 void player_think(Entity *self);
 void make_spear(Space *space);
 void spear_think(Entity *self);
-void make_shadow(Vec3D position);
+void make_shadow(Body *owner);
 void shadow_think(Entity *self);
 Entity *spawn_snake(Vec3D position, Space *space, int ck1);
 void snake_think(Entity *self);
+Entity *spawn_eye(Vec3D position, Space *space, int ck1);
+void eye_think(Entity *self);
+Entity *eye_spawner(Vec3D position, Space *space, int ck1, int ck2);
+void eye_spawner_think(Entity *self);
 Entity *build_cube(Vec3D position, Space *space);
 Entity *build_ground(Vec3D position, Space *space);
 void *build_road(Vec3D position, Space *space, int a);

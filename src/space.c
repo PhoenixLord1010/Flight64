@@ -3,7 +3,6 @@
 #include "body.h"
 #include "collisions.h"
 #include "simple_logger.h"
-
 #include <glib.h>
 
 struct Space_S
