@@ -407,9 +407,7 @@ void make_spear(Space *space)
     ent = entity_new();
     if (!ent)return;
 
-    ent->objModel1 = obj_load("models/spear.obj");
-	ent->objModel2 = obj_load("models/spear2.obj");
-	ent->objModel = ent->objModel1;
+    ent->objModel = obj_load("models/spear.obj");
     ent->texture = LoadSprite("models/spear_text.png",1024,1024);
     ent->think = spear_think;
 	ent->shown = 0;
@@ -444,7 +442,6 @@ void spear_think(Entity *self)
 					Player->body.position.y,
 					(Player->body.position.z+(-cos(self->rotation.y * DEGTORAD)))));
 			vec3d_cpy(self->rotation,Player->rotation);
-			self->objModel = self->objModel1;
 		}
 
 		if(Player->health > 0)
@@ -481,8 +478,7 @@ void spear_think(Entity *self)
 				}
 				else
 				{
-					/*self->objModel = self->objModel2;
-					self->shown = 1;
+					/*self->shown = 1;
 					self->body.hit = 1;
 					self->busy = 40;
 					self->state = ST_POUND;*/
@@ -785,7 +781,7 @@ void eye_think(Entity *self)
 	if(self->body.position.y < -20 || self->body.position.x < -20 || self->body.position.x > 30)entity_free(self);
 }
 
-Entity *eye_spawner(Vec3D position, Space *space, int ck1, int ck2)
+/*Entity *eye_spawner(Vec3D position, Space *space, int ck1, int ck2)
 {
 	Entity *ent;
     ent = entity_new();
@@ -809,7 +805,7 @@ void eye_spawner_think(Entity *self)
 		self->busy = self->ck2;
 	}
 	else self->busy--;
-}
+}*/
 
 Entity *build_cube(Vec3D position, Space *space)
 {
@@ -916,6 +912,61 @@ Entity *build_spike_base(Vec3D position, Space *space)
 	ent->body.tang = 1;
 	space_add_body(space,&ent->body);
     return ent;
+}
+
+Entity *build_platform(Vec3D position1, Vec3D position2, Space *space)
+{
+	Entity *ent;
+    ent = entity_new();
+    if (!ent)return NULL;
+
+    ent->objModel = obj_load("models/platform.obj");
+    ent->texture = LoadSprite("models/platform_text.png",1024,1024);
+	ent->think = platform_think;
+    vec3d_cpy(ent->body.position,position1);
+    cube_set(ent->body.bounds,-2,-0.5,-1.5,4,1,3);
+	ent->body.tang = 1;
+	ent->body._stepOffVector.x = position1.x;
+	ent->body._stepOffVector.y = position1.y;
+	ent->body._stepOffVector.z = position1.z;
+	ent->body.hitvec.x = position2.x;
+	ent->body.hitvec.y = position2.y;
+	ent->body.hitvec.z = position2.z;
+	ent->body.type = ST_OBJECT;
+	ent->ck1 = 1;
+	space_add_body(space,&ent->body);
+    return ent;
+}
+
+void platform_think(Entity *self)
+{
+	float px, py, pz, pw, hyp;
+	float speed = 0.05;
+	
+	if(self->ck1)
+	{
+		px = self->body.hitvec.x - self->body.position.x;
+		py = self->body.hitvec.y - self->body.position.y;
+		pz = self->body.hitvec.z - self->body.position.z;
+	}
+	else
+	{
+		px = self->body._stepOffVector.x - self->body.position.x;
+		py = self->body._stepOffVector.y - self->body.position.y;
+		pz = self->body._stepOffVector.z - self->body.position.z;
+	}
+
+	pw = sqrt((px * px) + (py * py) + (pz * pz));
+	if(pw != 0)hyp = speed / pw;
+	else hyp = 0;
+	self->body.velocity.x = px * hyp;
+	self->body.velocity.y = py * hyp;
+	self->body.velocity.z = pz * hyp;
+	if(pw < 0.01)
+		if(self->ck1)
+			self->ck1 = 0;
+		else
+			self->ck1 = 1;
 }
 
 

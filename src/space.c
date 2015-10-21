@@ -52,12 +52,14 @@ static void space_body_update(Space *space,Body *body)
     GList *it;
     Cube a,b;
     Body *other;
+	Vec3D v;
     Vec3D stepVector;
     Vec3D stepOffVector;
     
     if ((!body) || (body->_done))return;
     
-    vec3d_scale(stepVector,body->velocity,space->stepFactor);
+	vec3d_add(v,body->velocity,body->collvec);
+    vec3d_scale(stepVector,v,space->stepFactor);
     vec3d_negate(stepOffVector,stepVector);
     clear_collisions(body);
 

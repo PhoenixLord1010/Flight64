@@ -18,6 +18,7 @@ typedef struct
     Vec3D _stepOffVector;
 	int uCheck, uCheck2, dCheck, lCheck, rCheck, fCheck, bCheck;		/**<collision checks*/
 	Cube collision;		/**<collision axis points*/
+	Vec3D collvec;		/**<collision vector*/
 	int tang;			/**<is this tangible?*/
 	int hit;			/**<is this a hitbox?*/
 	int hurt;			/**<collided with hitbox?*/

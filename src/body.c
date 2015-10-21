@@ -29,16 +29,18 @@ void clear_collisions(Body *self)
 	self->collision.w = 0;
 	self->collision.h = 0;
 	self->collision.d = 0;
+	vec3d_set(self->collvec,0,0,0);
 }
 
 void check_collisions(Body *self, Body *other, Cube a, Cube b)
 {
-	if(self->tang && other->tang)
+	if(self->type != ST_OBJECT && self->tang && other->tang)
 	{
 		if((abs((b.y+b.h)-a.y) <= abs((a.x+a.w)-b.x)) && (abs((b.y+b.h)-a.y) <= abs((b.x+b.w)-a.x)) && (abs((b.y+b.h)-a.y) <= abs((a.z+a.d)-b.z)) && (abs((b.y+b.h)-a.y) <= abs((b.z+b.d)-a.z)) && (abs((b.y+b.h)-a.y) <= abs((a.y+a.h)-b.y)) && (self->velocity.y <= other->velocity.y))
 		{
 			self->uCheck = 1;
 			self->collision.h = b.y+b.h;
+			vec3d_cpy(self->collvec,other->velocity);
 		}
 		else if((abs((a.x+a.w)-b.x) <= abs((b.x+b.w)-a.x)) && (abs((a.x+a.w)-b.x) <= abs((a.z+a.d)-b.z)) && (abs((a.x+a.w)-b.x) <= abs((b.z+b.d)-a.z)) && (abs((a.x+a.w)-b.x) <= abs((a.y+a.h)-b.y)))
 		{
@@ -67,7 +69,7 @@ void check_collisions(Body *self, Body *other, Cube a, Cube b)
 		}
 	}
 
-	if(other->hit && (self->type != other->type))
+	if(self->type != ST_OBJECT && other->hit && (self->type != other->type))
 	{
 		self->hurt = 1;
 		vec3d_cpy(self->hitvec,other->position);

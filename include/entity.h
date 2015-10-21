@@ -11,8 +11,6 @@ enum STATES {ST_IDLE,ST_WALK,ST_JUMP1,ST_JUMP2,ST_DASH,ST_POUND,ST_DEAD};
 typedef struct Entity_S
 {
     Obj *objModel;
-	Obj *objModel1;
-	Obj *objModel2;
     Sprite *texture;    /**<object texture*/
     Body body;
 	void (*think) (struct ENTITY_S *self);	/**<think function*/
@@ -28,7 +26,6 @@ typedef struct Entity_S
 	float accel;
 	int shadow;
 	Body *owner;
-	Space *space;
 
 	int busy;
 	int delay;
@@ -91,6 +88,8 @@ void *build_road(Vec3D position, Space *space, int n);
 Entity *build_spikes(Vec3D position, Space *space, int i, int j);
 void spike_think(Entity *self);
 Entity *build_spike_base(Vec3D position, Space *space);
+Entity *build_platform(Vec3D position1, Vec3D position2, Space *space);
+void platform_think(Entity *self);
 
 /*Keyboard Input Stuff*/
 void InitKeyboard();
