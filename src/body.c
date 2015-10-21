@@ -1,4 +1,7 @@
 #include "body.h"
+#include "entity.h"
+
+extern Entity *Player;
 
 
 void body_reset(Body *body)
@@ -74,4 +77,6 @@ void check_collisions(Body *self, Body *other, Cube a, Cube b)
 		self->hurt = 1;
 		vec3d_cpy(self->hitvec,other->position);
 	}
+
+	if(self->type == ST_PLAYER && self->uCheck && other->type == ST_WARP && other->dCheck)Player->ck2 = 1;
 }

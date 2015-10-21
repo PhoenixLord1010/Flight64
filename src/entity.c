@@ -6,6 +6,8 @@
 #include <glut.h>
 #include <glew.h>
 
+extern Vec3D pnt;
+
 static Entity *__entity_list = NULL;
 static int __entity_max = 0;
 static int __entity_initialized = 0;
@@ -172,6 +174,7 @@ Entity *make_player(Vec3D position, Space *space)
 	ent->healthmax = 5;
 	ent->health = ent->healthmax;
 	ent->invuln = 0;
+	ent->ck2 = 0;
 	space_add_body(space,&ent->body);
 	Player = ent;
 	make_spear(space);
@@ -395,7 +398,7 @@ void player_think(Entity *self)
 		self->body.tang = 1;
 		self->body.hurt = 0;
 		self->accel = 0;
-		vec3d_set(self->body.position,8,0,0);
+		vec3d_cpy(self->body.position,pnt);
 		vec3d_set(self->rotation,0,0,0);
 		vec3d_set(self->body.velocity,0,0,0);
 	}
@@ -713,7 +716,7 @@ void snake_think(Entity *self)
 		self->body.velocity.z = 0;
 	}
 
-	if(self->body.position.y < -20)entity_free(self);
+	if(self->body.position.y < -20 || (self->body.position.z > Player->body.position.z + 20))entity_free(self);
 }
 
 Entity *spawn_eye(Vec3D position, Space *space, int ck1)
@@ -778,7 +781,7 @@ void eye_think(Entity *self)
 		self->body.velocity.z = 0;
 	}
 
-	if(self->body.position.y < -20 || self->body.position.x < -20 || self->body.position.x > 30)entity_free(self);
+	if(self->body.position.y < -20 || (self->body.position.z > Player->body.position.z + 20))entity_free(self);
 }
 
 /*Entity *eye_spawner(Vec3D position, Space *space, int ck1, int ck2)
@@ -872,7 +875,7 @@ void frog_think(Entity *self)
 		self->body.velocity.z = 0;
 	}
 
-	if(self->body.position.y < -20 || self->body.position.x < -20 || self->body.position.x > 30)entity_free(self);
+	if(self->body.position.y < -20 || (self->body.position.z > Player->body.position.z + 20))entity_free(self);
 }
 
 Entity *build_cube(Vec3D position, Space *space)
@@ -883,6 +886,7 @@ Entity *build_cube(Vec3D position, Space *space)
 
     ent->objModel = obj_load("models/cube.obj");
     ent->texture = LoadSprite("models/cube_text.png",1024,1024);
+	ent->think = object_think;
     vec3d_cpy(ent->body.position,position);
     cube_set(ent->body.bounds,-1,-1,-1,2,2,2);
 	ent->body.tang = 1;
@@ -894,14 +898,13 @@ Entity *build_ground(Vec3D position, Space *space)
 {
     Entity *ent;
     ent = entity_new();
-    if (!ent)
-    {
-        return NULL;
-    }
+    if (!ent)return NULL;
+ 
     ent->objModel = obj_load("models/ground.obj");
     ent->texture = LoadSprite("models/ground_text.png",1024,1024);
+	ent->think = object_think;
     vec3d_cpy(ent->body.position,position);
-    cube_set(ent->body.bounds,-8,-1,-1,16,2,2);
+    cube_set(ent->body.bounds,-8,-1,-2,16,2,4);
 	ent->body.tang = 1;
 	space_add_body(space,&ent->body);
     return ent;
@@ -913,7 +916,7 @@ void *build_road(Vec3D position, Space *space, int n)
 	
 	for(i = 0; i < n; i++)
 	{
-		vec3d_add(position,position,vec3d(0,0,-2));
+		vec3d_add(position,position,vec3d(0,0,-4));
 		build_ground(position, space);
 	}
 	return;
@@ -954,15 +957,20 @@ void spike_think(Entity *self)
 			self->body.hit = 1;
 			self->body.velocity.y = (float)2 / (self->ck1 / 4);
 		}
-		if(self->busy >= ((self->ck1 * 4) / 5))
+		if(self->busy >= ((self->ck1 * 4) / 5) && self->body.position.y > -4)
 		{
 			self->body.velocity.y = (float)-2 / (self->ck1 / 4);
 		}
+
+		if(self->body.position.y > -2)self->body.position.y = -2;
+		if(self->body.position.y < -4)self->body.position.y = -4; 
 
 		self->busy++;
 		if(self->busy >= self->ck1)self->busy = 0;
 	}
 	else self->delay--;
+
+	if(self->body.position.z > Player->body.position.z + 20)entity_free(self);
 }
 
 Entity *build_spike_base(Vec3D position, Space *space)
@@ -975,6 +983,7 @@ Entity *build_spike_base(Vec3D position, Space *space)
     }
     ent->objModel = obj_load("models/spike_base.obj");
     ent->texture = LoadSprite("models/spike_base_text.png",1024,1024);
+	ent->think = object_think;
     vec3d_cpy(ent->body.position,position);
     cube_set(ent->body.bounds,-8,-1,-1,16,2,2);
 	ent->body.tang = 1;
@@ -1035,6 +1044,35 @@ void platform_think(Entity *self)
 			self->ck1 = 0;
 		else
 			self->ck1 = 1;
+
+	if(self->body.position.z > Player->body.position.z + 20)entity_free(self);
+}
+
+void object_think(Entity *self)
+{
+	if(self->body.position.z > Player->body.position.z + 20)entity_free(self);
+}
+
+Entity *build_warp(Vec3D position, Space *space)
+{
+	Entity *ent;
+    ent = entity_new();
+    if (!ent)return NULL;
+
+    ent->objModel = obj_load("models/warp.obj");
+    ent->texture = LoadSprite("models/warp_text.png",1024,1024);
+	ent->think = object_think;
+    vec3d_cpy(ent->body.position,position);
+    cube_set(ent->body.bounds,-1.5,-0.25,-1.5,3,0.5,3);
+	ent->body.tang = 1;
+	ent->body.type = ST_WARP;
+	space_add_body(space,&ent->body);
+    return ent;
+}
+
+void warp_think(Entity *self)
+{
+	if(self->body.position.z > Player->body.position.z + 20)entity_free(self);
 }
 
 

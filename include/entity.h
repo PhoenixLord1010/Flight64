@@ -92,6 +92,9 @@ void spike_think(Entity *self);
 Entity *build_spike_base(Vec3D position, Space *space);
 Entity *build_platform(Vec3D position1, Vec3D position2, Space *space);
 void platform_think(Entity *self);
+void object_think(Entity *self);
+Entity *build_warp(Vec3D position, Space *space);
+void warp_think(Entity *self);
 
 /*Keyboard Input Stuff*/
 void InitKeyboard();

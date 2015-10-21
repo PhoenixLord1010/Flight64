@@ -5,7 +5,7 @@
 #include "collisions.h"
 #include "mgl_callback.h"
 
-enum TYPES {ST_PLAYER,ST_ENEMY,ST_OBJECT};
+enum TYPES {ST_PLAYER,ST_ENEMY,ST_OBJECT,ST_WARP};
 
 typedef struct
 {

@@ -209,6 +209,6 @@ void init_all()
 
     model_init();
     obj_init();
-    entity_init(510);
+    entity_init(255);
 	InitKeyboard();
 }
