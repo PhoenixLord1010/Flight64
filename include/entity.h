@@ -31,6 +31,7 @@ typedef struct Entity_S
 	Space *space;
 
 	int busy;
+	int delay;
 	int ck1,ck2;
 
 	int health;
@@ -70,6 +71,8 @@ int entity_is_entity(void *data);
 
 void update_entities();
 
+void clear_entities();
+
 Entity *make_player(Vec3D position, Space *space);
 void player_think(Entity *self);
 void make_spear(Space *space);
@@ -84,7 +87,10 @@ Entity *eye_spawner(Vec3D position, Space *space, int ck1, int ck2);
 void eye_spawner_think(Entity *self);
 Entity *build_cube(Vec3D position, Space *space);
 Entity *build_ground(Vec3D position, Space *space);
-void *build_road(Vec3D position, Space *space, int a);
+void *build_road(Vec3D position, Space *space, int n);
+Entity *build_spikes(Vec3D position, Space *space, int i, int j);
+void spike_think(Entity *self);
+Entity *build_spike_base(Vec3D position, Space *space);
 
 /*Keyboard Input Stuff*/
 void InitKeyboard();

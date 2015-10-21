@@ -135,6 +135,18 @@ void update_entities()
 	}
 }
 
+void clear_entities()
+{
+	int i;
+    for (i = 0;i < __entity_max;i++)
+    {
+        if (__entity_list[i].inuse)
+        {
+            entity_free(&__entity_list[i]);
+        }
+    }
+}
+
 
 
 
@@ -179,7 +191,7 @@ void player_think(Entity *self)
 	if(self->body.hurt && !self->invuln)
 	{
 		self->health--;
-		self->body.hurt--;
+		self->body.hurt = 0;
 		self->invuln = 30;
 		self->rotation.y = atan2(self->body.position.x-self->body.hitvec.x,self->body.position.z-self->body.hitvec.z) * RADTODEG;
 		self->body.velocity.y = 0.5;
@@ -360,6 +372,32 @@ void player_think(Entity *self)
 
 		if(self->rotation.y > 180)self->rotation.y -= 360;	/*Rotation Fix*/
 		if(self->rotation.y <= -180)self->rotation.y += 360;
+		self->body.hurt = 0;
+	}
+	else		/*Do While Dead*/
+	{
+		if(self->state != ST_DEAD)
+		{
+			self->body.velocity.y = 1;
+			self->state = ST_DEAD;
+			self->body.tang = 0;
+		}
+		vec3d_set(self->rotation,180,self->rotation.y,0);
+		self->body.velocity.x = 0;
+		self->body.velocity.y -= 0.1;
+		self->body.velocity.z = 0;
+	}
+
+	if(self->body.position.y < -20)		/*"Respawn"*/
+	{
+		self->health = 5;
+		self->state = ST_IDLE;
+		self->body.tang = 1;
+		self->body.hurt = 0;
+		self->accel = 0;
+		vec3d_set(self->body.position,8,0,0);
+		vec3d_set(self->rotation,0,0,0);
+		vec3d_set(self->body.velocity,0,0,0);
 	}
 }
 
@@ -396,108 +434,110 @@ void spear_think(Entity *self)
 	Obj *s;
 	
 	if(Player == NULL)entity_free(self);
-	
-	/*Move with Player*/
-	if(self->busy <= 0)
+	else
 	{
-		vec3d_cpy(self->body.position,
-				vec3d((Player->body.position.x+(-sin(self->rotation.y * DEGTORAD))),
-				Player->body.position.y,
-				(Player->body.position.z+(-cos(self->rotation.y * DEGTORAD)))));
-		vec3d_cpy(self->rotation,Player->rotation);
-		self->objModel = self->objModel1;
-	}
+		/*Move with Player*/
+		if(self->busy <= 0)
+		{
+			vec3d_cpy(self->body.position,
+					vec3d((Player->body.position.x+(-sin(self->rotation.y * DEGTORAD))),
+					Player->body.position.y,
+					(Player->body.position.z+(-cos(self->rotation.y * DEGTORAD)))));
+			vec3d_cpy(self->rotation,Player->rotation);
+			self->objModel = self->objModel1;
+		}
 
-	if(Player->health > 0)
-	{
-		if(isKeyHeld(SDL_SCANCODE_O) && self->busy <= 0 && self->busy > -11)
+		if(Player->health > 0)
 		{
-			self->busy--;
-		}
-		else
-		{
-			if(self->busy < -10)
+			if(isKeyHeld(SDL_SCANCODE_O) && self->busy <= 0 && self->busy > -11)
 			{
-				self->shown = 1;
-				self->body.hit = 1;
-				self->busy = 30;
-				self->shadow = 21;
-			}
-			if(self->busy < 0)
-			{
-				self->shown = 1;
-				self->body.hit = 1;
-				self->busy = 20;
-				self->shadow = 16;
-			}
-		}
-		if(isKeyHeld(SDL_SCANCODE_I) && !self->busy)
-		{
-			if(Player->body.uCheck)
-			{
-				self->shown = 1;
-				self->body.hit = 1;
-				self->busy = 40;
-				self->state = ST_DASH;
+				self->busy--;
 			}
 			else
 			{
-				self->objModel = self->objModel2;
-				self->shown = 1;
-				self->body.hit = 1;
-				self->busy = 40;
-				self->state = ST_POUND;
+				if(self->busy < -10)
+				{
+					self->shown = 1;
+					self->body.hit = 1;
+					self->busy = 30;
+					self->shadow = 21;
+				}
+				if(self->busy < 0)
+				{
+					self->shown = 1;
+					self->body.hit = 1;
+					self->busy = 20;
+					self->shadow = 16;
+				}
 			}
-		}
-
-		if(Player->state != ST_DASH && self->state == ST_DASH)
-		{
-			self->busy = 0;
-			self->state = ST_IDLE;
-		}
-
-		if(self->busy > 12)
-		{
-			if(Player->state != ST_DASH && Player->state != ST_POUND)
+			if(isKeyHeld(SDL_SCANCODE_I) && !self->busy)
 			{
-				vec3d_cpy(self->rotation,Player->rotation);
-				dist = sqrt(pow(self->body.position.x - Player->body.position.x,2) + pow(self->body.position.z - Player->body.position.z,2));
-				self->body.position.x = (-sin(self->rotation.y * DEGTORAD) * dist) + Player->body.position.x;
-				self->body.position.y = Player->body.position.y;
-				self->body.position.z = (-cos(self->rotation.y * DEGTORAD) * dist) + Player->body.position.z;
-				self->body.velocity.x = -sin(self->rotation.y * DEGTORAD) * (self->busy-self->shadow) * 0.05 + Player->body.velocity.x;
-				self->body.velocity.z = -cos(self->rotation.y * DEGTORAD) * (self->busy-self->shadow) * 0.05 + Player->body.velocity.z;
+				if(Player->body.uCheck)
+				{
+					self->shown = 1;
+					self->body.hit = 1;
+					self->busy = 40;
+					self->state = ST_DASH;
+				}
+				else
+				{
+					/*self->objModel = self->objModel2;
+					self->shown = 1;
+					self->body.hit = 1;
+					self->busy = 40;
+					self->state = ST_POUND;*/
+				}
 			}
-			else if(Player->state == ST_DASH)
-			{
-				vec3d_cpy(self->rotation,Player->rotation);
-				vec3d_cpy(self->body.position,
-						vec3d((Player->body.position.x + (-sin(self->rotation.y * DEGTORAD) * 2)),
-						Player->body.position.y,
-						(Player->body.position.z + (-cos(self->rotation.y * DEGTORAD) * 2))));
-			}
-			else
-			{
-				vec3d_cpy(self->rotation,Player->rotation);
-				vec3d_cpy(self->body.position,
-						vec3d((Player->body.position.x + (-sin(self->rotation.y * DEGTORAD) * 2)),
-						Player->body.position.y - 0.6,
-						(Player->body.position.z + (-cos(self->rotation.y * DEGTORAD) * 2))));
-			}
-		}
-		else		/*Cooldown*/
-		{
-			self->shown = 0;
-			self->body.hit = 0;
-		}
 
-		if(Player->invuln)
-		{
-			self->shown = 0;
-			self->body.hit = 0;
-		}
+			if(Player->state != ST_DASH && self->state == ST_DASH)
+			{
+				self->busy = 0;
+				self->state = ST_IDLE;
+			}
 
-		if(self->busy > 0)self->busy--;
+			if(self->busy > 12)
+			{
+				if(Player->state != ST_DASH && Player->state != ST_POUND)
+				{
+					vec3d_cpy(self->rotation,Player->rotation);
+					dist = sqrt(pow(self->body.position.x - Player->body.position.x,2) + pow(self->body.position.z - Player->body.position.z,2));
+					self->body.position.x = (-sin(self->rotation.y * DEGTORAD) * dist) + Player->body.position.x;
+					self->body.position.y = Player->body.position.y;
+					self->body.position.z = (-cos(self->rotation.y * DEGTORAD) * dist) + Player->body.position.z;
+					self->body.velocity.x = -sin(self->rotation.y * DEGTORAD) * (self->busy-self->shadow) * 0.05 + Player->body.velocity.x;
+					self->body.velocity.z = -cos(self->rotation.y * DEGTORAD) * (self->busy-self->shadow) * 0.05 + Player->body.velocity.z;
+				}
+				else if(Player->state == ST_DASH)
+				{
+					vec3d_cpy(self->rotation,Player->rotation);
+					vec3d_cpy(self->body.position,
+							vec3d((Player->body.position.x + (-sin(self->rotation.y * DEGTORAD) * 2)),
+							Player->body.position.y,
+							(Player->body.position.z + (-cos(self->rotation.y * DEGTORAD) * 2))));
+				}
+				else
+				{
+					vec3d_cpy(self->rotation,Player->rotation);
+					vec3d_cpy(self->body.position,
+							vec3d((Player->body.position.x + (-sin(self->rotation.y * DEGTORAD) * 2)),
+							Player->body.position.y - 0.6,
+							(Player->body.position.z + (-cos(self->rotation.y * DEGTORAD) * 2))));
+				}
+			}
+			else		/*Cooldown*/
+			{
+				self->shown = 0;
+				self->body.hit = 0;
+			}
+
+			if(Player->invuln)
+			{
+				self->shown = 0;
+				self->body.hit = 0;
+			}
+
+			if(self->busy > 0)self->busy--;
+		}
 	}
 }
 
@@ -589,8 +629,12 @@ void snake_think(Entity *self)
 	
 	if(self->health > 0)
 	{
-		dist = sqrt(pow(Player->body.position.x-self->body.position.x,2)+pow(Player->body.position.y-self->body.position.y,2)+pow(Player->body.position.z-self->body.position.z,2));
-		deg = atan2(self->body.position.x-Player->body.position.x,self->body.position.z-Player->body.position.z) * RADTODEG;
+		if(Player)
+		{
+			dist = sqrt(pow(Player->body.position.x-self->body.position.x,2)+pow(Player->body.position.y-self->body.position.y,2)+pow(Player->body.position.z-self->body.position.z,2));
+			deg = atan2(self->body.position.x-Player->body.position.x,self->body.position.z-Player->body.position.z) * RADTODEG;
+		}
+
 		if(dist < 10 && self->state == ST_WALK)
 		{
 			self->state = ST_JUMP1;
@@ -688,7 +732,6 @@ Entity *spawn_eye(Vec3D position, Space *space, int ck1)
 	ent->state = ST_IDLE;
     vec3d_cpy(ent->body.position,position);
     cube_set(ent->body.bounds,-1,-1,-1,2,2,2);
-	ent->body.tang = 1;
 	ent->body.hit = 1;
 	ent->body.hurt = 0;
 	ent->body.type = ST_ENEMY;
@@ -709,6 +752,8 @@ void eye_think(Entity *self)
 
 	if(self->health > 0)
 	{
+		if(self->body.position.x < -8)self->ck1 = 1;
+		if(self->body.position.x > 23.5)self->ck1 = 0;
 		if(self->ck1)
 		{
 			self->rotation.y = -90;
@@ -770,10 +815,8 @@ Entity *build_cube(Vec3D position, Space *space)
 {
     Entity *ent;
     ent = entity_new();
-    if (!ent)
-    {
-        return NULL;
-    }
+    if (!ent)return NULL;
+
     ent->objModel = obj_load("models/cube.obj");
     ent->texture = LoadSprite("models/cube_text.png",1024,1024);
     vec3d_cpy(ent->body.position,position);
@@ -800,16 +843,79 @@ Entity *build_ground(Vec3D position, Space *space)
     return ent;
 }
 
-void *build_road(Vec3D position, Space *space, int a)
+void *build_road(Vec3D position, Space *space, int n)
 {	
 	int i;
 	
-	for(i = 0; i < a; i++)
+	for(i = 0; i < n; i++)
 	{
 		vec3d_add(position,position,vec3d(0,0,-2));
 		build_ground(position, space);
 	}
 	return;
+}
+
+Entity *build_spikes(Vec3D position, Space *space, int i, int j)
+{
+	Entity *ent;
+    ent = entity_new();
+    if (!ent)return NULL;
+
+    ent->objModel = obj_load("models/spikes.obj");
+    ent->texture = LoadSprite("models/spikes_text.png",1024,1024);
+	ent->think = spike_think;
+    vec3d_cpy(ent->body.position,position);
+    cube_set(ent->body.bounds,-8,-1,-1,16,2,2);
+	ent->body.tang = 0;
+	ent->body.type = ST_OBJECT;
+	ent->busy = 0;
+	ent->ck1 = i;
+	ent->delay = j;
+	space_add_body(space,&ent->body);
+	build_spike_base(position, space);
+    return ent;
+}
+
+void spike_think(Entity *self)
+{
+	if(!self->delay)
+	{
+		if(self->busy < ((self->ck1 * 3) / 5))
+		{
+			self->body.hit = 0;
+			self->body.velocity.y = 0;
+		}
+		if((self->busy >= ((self->ck1 * 3) / 5)) && (self->busy < ((self->ck1 * 4) / 5)))
+		{
+			self->body.hit = 1;
+			self->body.velocity.y = (float)2 / (self->ck1 / 4);
+		}
+		if(self->busy >= ((self->ck1 * 4) / 5))
+		{
+			self->body.velocity.y = (float)-2 / (self->ck1 / 4);
+		}
+
+		self->busy++;
+		if(self->busy >= self->ck1)self->busy = 0;
+	}
+	else self->delay--;
+}
+
+Entity *build_spike_base(Vec3D position, Space *space)
+{
+	Entity *ent;
+    ent = entity_new();
+    if (!ent)
+    {
+        return NULL;
+    }
+    ent->objModel = obj_load("models/spike_base.obj");
+    ent->texture = LoadSprite("models/spike_base_text.png",1024,1024);
+    vec3d_cpy(ent->body.position,position);
+    cube_set(ent->body.bounds,-8,-1,-1,16,2,2);
+	ent->body.tang = 1;
+	space_add_body(space,&ent->body);
+    return ent;
 }
 
 
