@@ -18,6 +18,7 @@ void render_level(int level, Space *space)
 			//spawn_snake(vec3d(12,-2,-18),space,0);
 			//spawn_eye(vec3d(-4,3,-8),space,1);
 			//spawn_eye(vec3d(20,3,-12),space,0);
+			spawn_frog(vec3d(8,0,-16),space);
 
 			build_cube(vec3d(1,-2,0),space);
 			build_cube(vec3d(15,-2,0),space);

@@ -82,6 +82,8 @@ Entity *spawn_eye(Vec3D position, Space *space, int ck1);
 void eye_think(Entity *self);
 Entity *eye_spawner(Vec3D position, Space *space, int ck1, int ck2);
 void eye_spawner_think(Entity *self);
+Entity *spawn_frog(Vec3D position, Space *space);
+void frog_think(Entity *self);
 Entity *build_cube(Vec3D position, Space *space);
 Entity *build_ground(Vec3D position, Space *space);
 void *build_road(Vec3D position, Space *space, int n);

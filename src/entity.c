@@ -807,6 +807,74 @@ void eye_spawner_think(Entity *self)
 	else self->busy--;
 }*/
 
+Entity *spawn_frog(Vec3D position, Space *space)
+{
+	Entity *ent;
+    ent = entity_new();
+    if (!ent)return NULL;
+
+    ent->objModel = obj_load("models/frog.obj");
+    ent->texture = LoadSprite("models/frog_text.png",1024,1024);
+    ent->think = frog_think;
+	ent->state = ST_WALK;
+    vec3d_cpy(ent->body.position,position);
+    cube_set(ent->body.bounds,-0.75,-0.75,-0.75,1.5,1.5,1.5);
+	ent->rotation.y = 180;
+	ent->body.tang = 1;
+	ent->body.hit = 1;
+	ent->body.hurt = 0;
+	ent->body.type = ST_ENEMY;
+	ent->delay = 60;
+	ent->health = 1;
+	space_add_body(space,&ent->body);
+	return ent;
+}
+
+void frog_think(Entity *self)
+{
+	if(self->body.hurt)
+	{
+		self->health--;
+	}
+	
+	if(self->health > 0)
+	{
+		if(self->body.uCheck)
+		{
+			if(!self->delay)
+			{
+				self->delay = 60;
+				self->body.velocity.z = 0.2;
+				self->body.velocity.y = 0.5;
+			}
+			else
+			{
+				self->body.velocity.z = 0;
+				self->body.velocity.y = 0;
+				self->delay--;
+			}
+			self->body.position.y = self->body.collision.h + (self->body.bounds.h * 0.5);
+		}
+		else self->body.velocity.y -= 0.05;
+	}
+	else
+	{
+		if(self->state != ST_DEAD)
+		{
+			self->body.velocity.y = 1;
+			self->state = ST_DEAD;
+			self->body.tang = 0;
+			self->body.hit = 0;
+		}
+		vec3d_set(self->rotation,180,self->rotation.y,0);
+		self->body.velocity.x = 0;
+		self->body.velocity.y -= 0.1;
+		self->body.velocity.z = 0;
+	}
+
+	if(self->body.position.y < -20 || self->body.position.x < -20 || self->body.position.x > 30)entity_free(self);
+}
+
 Entity *build_cube(Vec3D position, Space *space)
 {
     Entity *ent;
