@@ -64,20 +64,80 @@ void entity_draw(Entity *ent);
  */
 void entity_free(Entity *ent);
 
+/**
+ * @brief checks if this is an entity
+ * @param data the data in question
+ */
 int entity_is_entity(void *data);
 
+/**
+ * @brief updates think functions
+ */
 void update_entities();
 
+/**
+ * @brief clears all entities
+ */
 void clear_entities();
 
+/**
+ * @brief clears all but one entity
+ * @param ent entity not to clear
+ */
+void clear_entities_except(Entity *ent);
+
+
+/**
+ * @brief creates the player entity
+ * @param position the starting position
+ * @param space the space to add it to
+ */
 Entity *make_player(Vec3D position, Space *space);
+
+/**
+ * @brief player think function
+ * @param self the player entity
+ */
 void player_think(Entity *self);
+
+/**
+ * @brief creates the spear entity
+ * @param space the space to add it to
+ */
 void make_spear(Space *space);
+
+/**
+ * @brief spear think function
+ * @param self the spear entity
+ */
 void spear_think(Entity *self);
+
+/**
+ * @brief create shadow entity
+ * @param owner the entity this shadow belongs to
+ */
 void make_shadow(Body *owner);
+
+/**
+ * @brief shadow think function
+ * @param self the shadow entity
+ */
 void shadow_think(Entity *self);
+
+/**
+ * @brief create snake enemy
+ * @param position the starting position
+ * @param space the space to add it to
+ * @param ck1 the direction it circles in
+ */
 Entity *spawn_snake(Vec3D position, Space *space, int ck1);
+
+/**
+ * @brief snake think function
+ * @param self the snake entity
+ */
 void snake_think(Entity *self);
+
 Entity *spawn_eye(Vec3D position, Space *space, int ck1);
 void eye_think(Entity *self);
 Entity *eye_spawner(Vec3D position, Space *space, int ck1, int ck2);

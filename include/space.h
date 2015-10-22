@@ -12,5 +12,6 @@ void space_free(Space *space);
 void space_set_steps(Space *space,int steps);
 void space_do_step(Space *space);
 void space_add_body(Space *space,Body *body);
+void space_remove_body(Space *space,Body *body);
 
 #endif

@@ -7,6 +7,7 @@
 #include <glew.h>
 
 extern Vec3D pnt;
+extern Space *space;
 
 static Entity *__entity_list = NULL;
 static int __entity_max = 0;
@@ -59,7 +60,7 @@ void entity_free(Entity *ent)
         return;
     }
     ent[0].inuse = 0;
-    obj_free(ent->objModel);
+	obj_free(ent->objModel);
     FreeSprite(ent->texture);
 }
 
@@ -142,9 +143,23 @@ void clear_entities()
 	int i;
     for (i = 0;i < __entity_max;i++)
     {
-        if (__entity_list[i].inuse)
+        if (__entity_list[i].inuse != NULL)
         {
-            entity_free(&__entity_list[i]);
+			if(&__entity_list[i].body)space_remove_body(space,&__entity_list[i].body);
+			entity_free(&__entity_list[i]);
+        }
+    }
+}
+
+void clear_entities_except(Entity *ent)
+{
+	int i;
+    for (i = 0;i < __entity_max;i++)
+    {
+		if (__entity_list[i].inuse != NULL && (__entity_list[i].body.type != ent->body.type))
+        {
+			if(&__entity_list[i].body != NULL)space_remove_body(space,&__entity_list[i].body);
+			entity_free(&__entity_list[i]);
         }
     }
 }
@@ -434,7 +449,11 @@ void spear_think(Entity *self)
 	float dist;
 	Obj *s;
 	
-	if(Player == NULL)entity_free(self);
+	if(Player == NULL)
+	{
+		space_remove_body(space,&self->body);
+		entity_free(self);
+	}
 	else
 	{
 		/*Move with Player*/
@@ -503,6 +522,10 @@ void spear_think(Entity *self)
 					self->body.position.x = (-sin(self->rotation.y * DEGTORAD) * dist) + Player->body.position.x;
 					self->body.position.y = Player->body.position.y;
 					self->body.position.z = (-cos(self->rotation.y * DEGTORAD) * dist) + Player->body.position.z;
+
+					self->body.bounds.x = (-sin(self->rotation.y * DEGTORAD) * 0.75);
+					self->body.bounds.z = (-cos(self->rotation.y * DEGTORAD) * 0.75);
+
 					self->body.velocity.x = -sin(self->rotation.y * DEGTORAD) * (self->busy-self->shadow) * 0.05 + Player->body.velocity.x;
 					self->body.velocity.z = -cos(self->rotation.y * DEGTORAD) * (self->busy-self->shadow) * 0.05 + Player->body.velocity.z;
 				}
@@ -716,7 +739,11 @@ void snake_think(Entity *self)
 		self->body.velocity.z = 0;
 	}
 
-	if(self->body.position.y < -20 || (self->body.position.z > Player->body.position.z + 20))entity_free(self);
+	if(self->body.position.y < -20 || (self->body.position.z > Player->body.position.z + 60))
+	{
+		space_remove_body(space,&self->body);
+		entity_free(self);
+	}
 }
 
 Entity *spawn_eye(Vec3D position, Space *space, int ck1)
@@ -781,7 +808,11 @@ void eye_think(Entity *self)
 		self->body.velocity.z = 0;
 	}
 
-	if(self->body.position.y < -20 || (self->body.position.z > Player->body.position.z + 20))entity_free(self);
+	if(self->body.position.y < -20 || (self->body.position.z > Player->body.position.z + 60))
+	{
+		space_remove_body(space,&self->body);
+		entity_free(self);
+	}
 }
 
 /*Entity *eye_spawner(Vec3D position, Space *space, int ck1, int ck2)
@@ -875,7 +906,11 @@ void frog_think(Entity *self)
 		self->body.velocity.z = 0;
 	}
 
-	if(self->body.position.y < -20 || (self->body.position.z > Player->body.position.z + 20))entity_free(self);
+	if(self->body.position.y < -20 || (self->body.position.z > Player->body.position.z + 60))
+	{
+		space_remove_body(space,&self->body);
+		entity_free(self);
+	}
 }
 
 Entity *build_cube(Vec3D position, Space *space)
@@ -916,8 +951,8 @@ void *build_road(Vec3D position, Space *space, int n)
 	
 	for(i = 0; i < n; i++)
 	{
-		vec3d_add(position,position,vec3d(0,0,-4));
 		build_ground(position, space);
+		vec3d_add(position,position,vec3d(0,0,-4));
 	}
 	return;
 }
@@ -970,7 +1005,11 @@ void spike_think(Entity *self)
 	}
 	else self->delay--;
 
-	if(self->body.position.z > Player->body.position.z + 20)entity_free(self);
+	if(self->body.position.z > Player->body.position.z + 60)
+	{
+		space_remove_body(space,&self->body);
+		entity_free(self);
+	}
 }
 
 Entity *build_spike_base(Vec3D position, Space *space)
@@ -1045,12 +1084,20 @@ void platform_think(Entity *self)
 		else
 			self->ck1 = 1;
 
-	if(self->body.position.z > Player->body.position.z + 20)entity_free(self);
+	if(self->body.position.z > Player->body.position.z + 60)
+	{
+		space_remove_body(space,&self->body);
+		entity_free(self);
+	}
 }
 
 void object_think(Entity *self)
 {
-	if(self->body.position.z > Player->body.position.z + 20)entity_free(self);
+	if(self->body.position.z > Player->body.position.z + 60)
+	{
+		space_remove_body(space,&self->body);
+		entity_free(self);
+	}
 }
 
 Entity *build_warp(Vec3D position, Space *space)
@@ -1072,7 +1119,11 @@ Entity *build_warp(Vec3D position, Space *space)
 
 void warp_think(Entity *self)
 {
-	if(self->body.position.z > Player->body.position.z + 20)entity_free(self);
+	if(self->body.position.z > Player->body.position.z + 60)
+	{
+		space_remove_body(space,&self->body);
+		entity_free(self);
+	}
 }
 
 

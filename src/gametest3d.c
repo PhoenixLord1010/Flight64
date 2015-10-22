@@ -38,6 +38,7 @@
 #include <string.h>
 
 extern Entity *Player;
+Space *space;
 
 void set_camera(Vec3D position, Vec3D rotation);
 void init_all();
@@ -47,7 +48,7 @@ int main(int argc, char *argv[])
 {
     int i;
     float r = 0;
-    Space *space;
+    //Space *space;
     char bGameLoopRunning = 1;
     Vec3D cameraPosition = {8,5,15};
     Vec3D cameraRotation = {-20,0,0};

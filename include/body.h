@@ -38,7 +38,19 @@ void body_reset(Body *body);
  */
 void body_process(Body *body);
 
+/**
+ * @brief clears collision check variables for the next frame
+ * @param self the entity to clear from
+ */
 void clear_collisions(Body *self);
+
+/**
+ * @brief finds out the type of collision
+ * @param self the first entity
+ * @param other the second entity
+ * @a the first entity's position
+ * @b the second entity's position
+ */
 void check_collisions(Body *self, Body *other, Cube a, Cube b);
 
 #endif
