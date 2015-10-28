@@ -5,7 +5,7 @@
 #include "collisions.h"
 #include "mgl_callback.h"
 
-enum TYPES {ST_PLAYER,ST_ENEMY,ST_OBJECT,ST_WARP};
+enum TYPES {T_PLAYER,T_ENEMY,T_OBJECT,T_WARP,T_NULL};
 
 typedef struct
 {
@@ -23,7 +23,7 @@ typedef struct
 	int hit;			/**<is this a hitbox?*/
 	int hurt;			/**<collided with hitbox?*/
 	Vec3D hitvec;		/**<hitbox collision location*/
-	int type;			/**<player or enemy*/
+	int type;			/**<player, enemy, object?*/
 }Body;
 
 /**

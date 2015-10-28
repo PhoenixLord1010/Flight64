@@ -40,9 +40,9 @@ int vec3d_and(Vec3D V, Vec3D W);
 #define MAX(a,b)          (a>=b?a:b)
 #endif
 
-#define vec2d_set(v, a, b)      (v.x=(a), v.y=(b))
-#define vec3d_set(v, a, b, c)   (v.x=(a), v.y=(b), v.z=(c))
-#define vec4d_set(v, a, b, c,d) (v.x=(a), v.y=(b), v.z=(c), v.w=(d))
+#define vec2d_set(v,a,b)		(v.x=(a), v.y=(b))
+#define vec3d_set(v,a,b,c)		(v.x=(a), v.y=(b), v.z=(c))
+#define vec4d_set(v,a,b,c,d)	(v.x=(a), v.y=(b), v.z=(c), v.w=(d))
 
 #define vec2d_negate(dst,src)      (dst.x = -src.x,dst.y = -src.y)
 #define vec3d_negate(dst,src)      (dst.x = -src.x,dst.y = -src.y,dst.z = -src.z)

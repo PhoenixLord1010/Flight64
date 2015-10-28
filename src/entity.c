@@ -182,9 +182,9 @@ Entity *make_player(Vec3D position, Space *space)
 	ent->body.tang = 1;
 	ent->body.hit = 0;
 	ent->body.hurt = 0;
-	ent->body.type = ST_PLAYER;
+	ent->body.type = T_PLAYER;
 	ent->accel = 0;
-	ent->shadow = 0;
+	ent->shadow = 1;
 	ent->busy = 0;
 	ent->healthmax = 5;
 	ent->health = ent->healthmax;
@@ -193,6 +193,7 @@ Entity *make_player(Vec3D position, Space *space)
 	space_add_body(space,&ent->body);
 	Player = ent;
 	make_spear(space);
+	make_shadow(&ent->body);
 	return ent;
 }
 
@@ -330,11 +331,6 @@ void player_think(Entity *self)
 					self->state = ST_JUMP1;
 					self->body.velocity.y = 0.5;
 				}
-				if(self->shadow == 0)
-				{
-					make_shadow(&self->body);
-					self->shadow++;
-				}
 			}
 
 			if(isKeyHeld(SDL_SCANCODE_SPACE) && self->body.velocity.y < 0 && self->state != ST_POUND)		/*Float*/
@@ -369,11 +365,6 @@ void player_think(Entity *self)
 		if(!self->body.uCheck)		/*In the Air*/
 		{
 			if(self->body.velocity.y > grav)self->body.velocity.y -= weight;
-			if(self->shadow == 0)
-			{
-				make_shadow(&self->body);
-				self->shadow++;
-			}
 		}
 
 		/*Movement*/
@@ -436,7 +427,7 @@ void make_spear(Space *space)
     cube_set(ent->body.bounds,-0.375,-0.375,-0.375,0.75,0.75,0.75);
 	ent->body.tang = 0;
 	ent->body.hit = 0;
-	ent->body.type = ST_PLAYER;
+	ent->body.type = T_PLAYER;
 	ent->accel = 0;
 	ent->busy = 0;
 	ent->invuln = 0;
@@ -573,7 +564,11 @@ void make_shadow(Body *owner)
     ent->texture = LoadSprite("models/shadow_text.png",1024,1024);
     ent->think = shadow_think;
 	vec3d_cpy(ent->body.position,owner->position);
-	cube_set(ent->body.bounds,-1,-0.05,-1,2,0.1,2);
+	//cube_set(ent->body.bounds,-1,-0.05,-1,2,0.1,2);
+	cube_set(ent->body.bounds,owner->bounds.x,-0.05,owner->bounds.z,owner->bounds.w,0.1,owner->bounds.d);
+	ent->scale.x *= owner->bounds.w * 0.5;
+	ent->scale.y *= owner->bounds.h * 0.5;
+	ent->scale.z *= owner->bounds.d * 0.5;
 	ent->owner = owner;
 	return;
 }
@@ -586,7 +581,7 @@ void shadow_think(Entity *self)
 	Vec3D start,dir,t1,t2,t3,t4,contact;
 
 	vec3d_set(start,self->owner->position.x,self->owner->position.y + self->owner->bounds.y,self->owner->position.z);
-	vec3d_set(dir,0,-100,0);
+	vec3d_set(dir,0,-1000,0);
 	y = self->owner->position.y - 100;
 
 	
@@ -612,7 +607,10 @@ void shadow_think(Entity *self)
 
 	self->body.position.x = self->owner->position.x;
 	self->body.position.y = y + 0.2;
+	if(self->body.position.y >= self->owner->position.y)self->body.position.y -= 100;
 	self->body.position.z = self->owner->position.z;
+
+	if(self->owner->type == T_NULL)entity_free(self);
 }
 
 Entity *spawn_snake(Vec3D position, Space *space, int ck1)
@@ -630,10 +628,11 @@ Entity *spawn_snake(Vec3D position, Space *space, int ck1)
 	ent->body.tang = 1;
 	ent->body.hit = 1;
 	ent->body.hurt = 0;
-	ent->body.type = ST_ENEMY;
+	ent->body.type = T_ENEMY;
 	space_add_body(space,&ent->body);
 	ent->ck1 = ck1;		/*Rotation Direction*/
 	ent->health = 1;
+	make_shadow(&ent->body);
 	return ent;
 }
 
@@ -741,6 +740,7 @@ void snake_think(Entity *self)
 
 	if(self->body.position.y < -20 || (self->body.position.z > Player->body.position.z + 60))
 	{
+		self->body.type = T_NULL;
 		space_remove_body(space,&self->body);
 		entity_free(self);
 	}
@@ -760,7 +760,7 @@ Entity *spawn_eye(Vec3D position, Space *space, int ck1)
     cube_set(ent->body.bounds,-1,-1,-1,2,2,2);
 	ent->body.hit = 1;
 	ent->body.hurt = 0;
-	ent->body.type = ST_ENEMY;
+	ent->body.type = T_ENEMY;
 	space_add_body(space,&ent->body);
 	ent->ck1 = ck1;
 	ent->health = 1;
@@ -810,6 +810,7 @@ void eye_think(Entity *self)
 
 	if(self->body.position.y < -20 || (self->body.position.z > Player->body.position.z + 60))
 	{
+		self->body.type = T_NULL;
 		space_remove_body(space,&self->body);
 		entity_free(self);
 	}
@@ -857,10 +858,11 @@ Entity *spawn_frog(Vec3D position, Space *space)
 	ent->body.tang = 1;
 	ent->body.hit = 1;
 	ent->body.hurt = 0;
-	ent->body.type = ST_ENEMY;
+	ent->body.type = T_ENEMY;
 	ent->delay = 60;
 	ent->health = 1;
 	space_add_body(space,&ent->body);
+	make_shadow(&ent->body);
 	return ent;
 }
 
@@ -908,6 +910,7 @@ void frog_think(Entity *self)
 
 	if(self->body.position.y < -20 || (self->body.position.z > Player->body.position.z + 60))
 	{
+		self->body.type = T_NULL;
 		space_remove_body(space,&self->body);
 		entity_free(self);
 	}
@@ -969,7 +972,7 @@ Entity *build_spikes(Vec3D position, Space *space, int i, int j)
     vec3d_cpy(ent->body.position,position);
     cube_set(ent->body.bounds,-8,-1,-1,16,2,2);
 	ent->body.tang = 0;
-	ent->body.type = ST_OBJECT;
+	ent->body.type = T_OBJECT;
 	ent->busy = 0;
 	ent->ck1 = i;
 	ent->delay = j;
@@ -1048,9 +1051,10 @@ Entity *build_platform(Vec3D position1, Vec3D position2, Space *space)
 	ent->body.hitvec.x = position2.x;
 	ent->body.hitvec.y = position2.y;
 	ent->body.hitvec.z = position2.z;
-	ent->body.type = ST_OBJECT;
+	ent->body.type = T_OBJECT;
 	ent->ck1 = 1;
 	space_add_body(space,&ent->body);
+	make_shadow(&ent->body);
     return ent;
 }
 
@@ -1086,6 +1090,7 @@ void platform_think(Entity *self)
 
 	if(self->body.position.z > Player->body.position.z + 60)
 	{
+		self->body.type = T_NULL;
 		space_remove_body(space,&self->body);
 		entity_free(self);
 	}
@@ -1095,6 +1100,7 @@ void object_think(Entity *self)
 {
 	if(self->body.position.z > Player->body.position.z + 60)
 	{
+		self->body.type = T_NULL;
 		space_remove_body(space,&self->body);
 		entity_free(self);
 	}
@@ -1112,7 +1118,7 @@ Entity *build_warp(Vec3D position, Space *space)
     vec3d_cpy(ent->body.position,position);
     cube_set(ent->body.bounds,-1.5,-0.25,-1.5,3,0.5,3);
 	ent->body.tang = 1;
-	ent->body.type = ST_WARP;
+	ent->body.type = T_WARP;
 	space_add_body(space,&ent->body);
     return ent;
 }

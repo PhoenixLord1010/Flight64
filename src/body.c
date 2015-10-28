@@ -37,7 +37,7 @@ void clear_collisions(Body *self)
 
 void check_collisions(Body *self, Body *other, Cube a, Cube b)
 {
-	if(self->type != ST_OBJECT && self->tang && other->tang)
+	if(self->type != T_OBJECT && self->tang && other->tang)
 	{
 		if((abs((b.y+b.h)-a.y) <= abs((a.x+a.w)-b.x)) && (abs((b.y+b.h)-a.y) <= abs((b.x+b.w)-a.x)) && (abs((b.y+b.h)-a.y) <= abs((a.z+a.d)-b.z)) && (abs((b.y+b.h)-a.y) <= abs((b.z+b.d)-a.z)) && (abs((b.y+b.h)-a.y) <= abs((a.y+a.h)-b.y)) && (self->velocity.y <= other->velocity.y))
 		{
@@ -72,11 +72,11 @@ void check_collisions(Body *self, Body *other, Cube a, Cube b)
 		}
 	}
 
-	if(self->type != ST_OBJECT && other->hit && (self->type != other->type))
+	if(self->type != T_OBJECT && other->hit && (self->type != other->type))
 	{
 		self->hurt = 1;
 		vec3d_cpy(self->hitvec,other->position);
 	}
 
-	if(self->type == ST_PLAYER && self->uCheck && other->type == ST_WARP && other->dCheck)Player->ck2 = 1;
+	if(self->type == T_PLAYER && self->uCheck && other->type == T_WARP && other->dCheck)Player->ck2 = 1;
 }
