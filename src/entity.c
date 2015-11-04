@@ -229,7 +229,7 @@ void player_think(Entity *self)
 		}
 		if(self->body.dCheck)
 		{
-			self->body.velocity.y = -2;
+			self->body.velocity.y = -0.5;
 			self->body.position.y = self->body.collision.y - self->body.bounds.h*0.5;
 		}
 		if(self->body.lCheck)
@@ -358,7 +358,7 @@ void player_think(Entity *self)
 			if(self->state == ST_POUND && self->busy)
 			{
 				self->accel = 0;
-				if(!self->body.uCheck)self->body.velocity.y = -0.8;
+				if(!self->body.uCheck)self->body.velocity.y = -0.6;
 			}
 		}
 
@@ -455,6 +455,7 @@ void spear_think(Entity *self)
 					Player->body.position.y,
 					(Player->body.position.z+(-cos(self->rotation.y * DEGTORAD)))));
 			vec3d_cpy(self->rotation,Player->rotation);
+			if((Player->state != ST_DASH) && (Player->state != ST_POUND))self->state = ST_IDLE;
 		}
 
 		if(Player->health > 0)
@@ -489,12 +490,12 @@ void spear_think(Entity *self)
 					self->busy = 40;
 					self->state = ST_DASH;
 				}
-				else
+				else if(Player->state == ST_POUND)
 				{
-					/*self->shown = 1;
+					self->shown = 1;
 					self->body.hit = 1;
 					self->busy = 40;
-					self->state = ST_POUND;*/
+					self->state = ST_POUND;
 				}
 			}
 
@@ -506,7 +507,7 @@ void spear_think(Entity *self)
 
 			if(self->busy > 12)
 			{
-				if(Player->state != ST_DASH && Player->state != ST_POUND)
+				if(self->state != ST_DASH && self->state != ST_POUND)
 				{
 					vec3d_cpy(self->rotation,Player->rotation);
 					dist = sqrt(pow(self->body.position.x - Player->body.position.x,2) + pow(self->body.position.z - Player->body.position.z,2));
@@ -520,21 +521,30 @@ void spear_think(Entity *self)
 					self->body.velocity.x = -sin(self->rotation.y * DEGTORAD) * (self->busy-self->shadow) * 0.05 + Player->body.velocity.x;
 					self->body.velocity.z = -cos(self->rotation.y * DEGTORAD) * (self->busy-self->shadow) * 0.05 + Player->body.velocity.z;
 				}
-				else if(Player->state == ST_DASH)
+				else if(self->state == ST_DASH)
 				{
 					vec3d_cpy(self->rotation,Player->rotation);
 					vec3d_cpy(self->body.position,
 							vec3d((Player->body.position.x + (-sin(self->rotation.y * DEGTORAD) * 2)),
 							Player->body.position.y,
 							(Player->body.position.z + (-cos(self->rotation.y * DEGTORAD) * 2))));
+
+					self->body.bounds.x = (-sin(self->rotation.y * DEGTORAD) * 0.75);
+					self->body.bounds.z = (-cos(self->rotation.y * DEGTORAD) * 0.75);
 				}
 				else
 				{
-					vec3d_cpy(self->rotation,Player->rotation);
+					self->rotation.x = -90;
+					self->rotation.y = 0;
+					self->rotation.z = 0;
 					vec3d_cpy(self->body.position,
-							vec3d((Player->body.position.x + (-sin(self->rotation.y * DEGTORAD) * 2)),
-							Player->body.position.y - 0.6,
-							(Player->body.position.z + (-cos(self->rotation.y * DEGTORAD) * 2))));
+							vec3d((Player->body.position.x + (-sin(Player->rotation.y * DEGTORAD) * 1.5)),
+							Player->body.position.y - 1.5,
+							(Player->body.position.z + (-cos(Player->rotation.y * DEGTORAD) * 1.5))));
+
+					self->body.bounds.x = (-sin(self->rotation.y * DEGTORAD) * 0.75);
+					self->body.bounds.y = -1;
+					self->body.bounds.z = (-cos(self->rotation.y * DEGTORAD) * 0.75);
 				}
 			}
 			else		/*Cooldown*/
@@ -564,7 +574,6 @@ void make_shadow(Body *owner)
     ent->texture = LoadSprite("models/shadow_text.png",1024,1024);
     ent->think = shadow_think;
 	vec3d_cpy(ent->body.position,owner->position);
-	//cube_set(ent->body.bounds,-1,-0.05,-1,2,0.1,2);
 	cube_set(ent->body.bounds,owner->bounds.x,-0.05,owner->bounds.z,owner->bounds.w,0.1,owner->bounds.d);
 	ent->scale.x *= owner->bounds.w * 0.5;
 	ent->scale.y *= owner->bounds.h * 0.5;

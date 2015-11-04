@@ -17,9 +17,9 @@ void render_level(int level, Space *space)
 		{
 			make_player(vec3d(8,0,1),space);
 			
-			spawn_frog(vec3d(8,0,-16),space);
-			spawn_frog(vec3d(4,0,-24),space);
-			spawn_frog(vec3d(12,0,-32),space);
+			spawn_frog(vec3d(8,0,-32),space);
+			spawn_frog(vec3d(4,0,-40),space);
+			spawn_frog(vec3d(12,0,-48),space);
 
 			build_cube(vec3d(1,-2,0),space);
 			build_cube(vec3d(15,-2,0),space);
