@@ -16,7 +16,7 @@ typedef struct Entity_S
 	void (*think) (struct ENTITY_S *self);	/**<think function*/
 	int inuse;
 	int shown;
-    int uid;		/**<unique id of this entity*/
+    int uid;			/**<unique id of this entity*/
     char name[128];
 	int state;
     Vec3D acceleration;
@@ -201,6 +201,13 @@ Entity *build_ground(Vec3D position, Space *space);
  * @param n the amount to create
  */
 void *build_road(Vec3D position, Space *space, int n);
+
+/**
+ * @brief create wall entity
+ * @param position the starting position
+ * @param space the space to add it to
+ */
+Entity *build_wall(Vec3D position, Space *space, int i);
 
 /**
  * @brief create spike entity

@@ -17,6 +17,24 @@ void render_level(int level, Space *space)
 		{
 			make_player(vec3d(8,0,1),space);
 			
+			build_road(vec3d(8,-4,6),space,16);
+			build_wall(vec3d(4,0,-4),space,0);
+			build_wall(vec3d(4,8,-4),space,1);
+			build_wall(vec3d(12,0,-4),space,0);
+			build_wall(vec3d(12,8,-4),space,1);
+
+			build_cube(vec3d(8,-2,2),space);
+
+			section++;
+		}
+	}
+	
+	if(level == 1)
+	{
+		if(section == 0)
+		{
+			make_player(vec3d(8,0,1),space);
+			
 			spawn_frog(vec3d(8,0,-32),space);
 			spawn_frog(vec3d(4,0,-40),space);
 			spawn_frog(vec3d(12,0,-48),space);

@@ -70,6 +70,11 @@ int main(int argc, char *argv[])
 
     while (bGameLoopRunning)
     {
+		keys = SDL_GetKeyboardState(&keyn);
+		if(keys[SDL_SCANCODE_ESCAPE])bGameLoopRunning = 0;
+
+		SDL_PumpEvents();
+
 		update_entities();
 		for (i = 0; i < 100;i++)
         {
@@ -159,11 +164,7 @@ int main(int argc, char *argv[])
             }
         }*/
 		
-		keys = SDL_GetKeyboardState(&keyn);
-		if(keys[SDL_SCANCODE_ESCAPE])bGameLoopRunning = 0;
-
-		SDL_PumpEvents();
-
+		
         graphics3d_frame_begin();
 		
         glUniform3f(iResolution, SCREEN_WIDTH, SCREEN_HEIGHT, 100.0f);
@@ -183,6 +184,9 @@ int main(int argc, char *argv[])
 		{
 			if(Player->body.position.z < (cameraPosition.z - 17))cameraPosition.z-=0.1;
 			if(Player->body.position.z > (cameraPosition.z - 13))cameraPosition.z+=0.1;
+
+			if(Player->body.position.y < (cameraPosition.y - 6))cameraPosition.y-=0.03;
+			if(Player->body.position.y > (cameraPosition.y - 2))cameraPosition.y+=0.035;
 		}
 
         graphics3d_next_frame();

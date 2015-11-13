@@ -81,11 +81,11 @@ static void space_body_update(Space *space,Body *body)
         /*check for collision*/
         other = (Body *)it->data;
         vec3d_cpy(b,other->position);
-        b.w = other->bounds.w;
+        vec3d_add(b,b,other->bounds);
+		b.w = other->bounds.w;
         b.h = other->bounds.h;
         b.d = other->bounds.d;
-        vec3d_add(b,b,other->bounds);
-		if (cube_cube_intersection(a,b))
+        if (cube_cube_intersection(a,b))
         {
             check_collisions(body,other,a,b);
         }

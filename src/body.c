@@ -39,33 +39,33 @@ void check_collisions(Body *self, Body *other, Cube a, Cube b)
 {
 	if(self->type != T_OBJECT && self->tang && other->tang)
 	{
-		if((abs((b.y+b.h)-a.y) <= abs((a.x+a.w)-b.x)) && (abs((b.y+b.h)-a.y) <= abs((b.x+b.w)-a.x)) && (abs((b.y+b.h)-a.y) <= abs((a.z+a.d)-b.z)) && (abs((b.y+b.h)-a.y) <= abs((b.z+b.d)-a.z)) && (abs((b.y+b.h)-a.y) <= abs((a.y+a.h)-b.y)) && (self->velocity.y <= other->velocity.y))
+		if((abs((b.y+b.h)-a.y) < 0.1) && (abs((b.y+b.h)-a.y) <= abs((a.x+a.w)-b.x)) && (abs((b.y+b.h)-a.y) <= abs((b.x+b.w)-a.x)) && (abs((b.y+b.h)-a.y) <= abs((a.z+a.d)-b.z)) && (abs((b.y+b.h)-a.y) <= abs((b.z+b.d)-a.z)) && (abs((b.y+b.h)-a.y) <= abs((a.y+a.h)-b.y)) && (self->velocity.y <= other->velocity.y) && other->uTang)
 		{
 			self->uCheck = 1;
 			self->collision.h = b.y+b.h;
 			vec3d_cpy(self->collvec,other->velocity);
 		}
-		else if((abs((a.x+a.w)-b.x) <= abs((b.x+b.w)-a.x)) && (abs((a.x+a.w)-b.x) <= abs((a.z+a.d)-b.z)) && (abs((a.x+a.w)-b.x) <= abs((b.z+b.d)-a.z)) && (abs((a.x+a.w)-b.x) <= abs((a.y+a.h)-b.y)))
+		if((abs((a.x+a.w)-b.x) < 0.1) && (abs((a.x+a.w)-b.x) < abs((b.y+b.h)-a.y)) && (abs((a.x+a.w)-b.x) <= abs((b.x+b.w)-a.x)) && (abs((a.x+a.w)-b.x) <= abs((a.z+a.d)-b.z)) && (abs((a.x+a.w)-b.x) <= abs((b.z+b.d)-a.z)) && (abs((a.x+a.w)-b.x) <= abs((a.y+a.h)-b.y)))
 		{
 			self->lCheck = 1;
 			self->collision.x = b.x;
 		}
-		else if((abs((b.x+b.w)-a.x) <= abs((a.z+a.d)-b.z)) && (abs((b.x+b.w)-a.x) <= abs((b.z+b.d)-a.z)) && (abs((b.x+b.w)-a.x) <= abs((a.y+a.h)-b.y)))
+		if((abs((b.x+b.w)-a.x) < 0.1) && (abs((b.x+b.w)-a.x) < abs((b.y+b.h)-a.y)) && (abs((b.x+b.w)-a.x) < abs((a.x+a.w)-b.x)) && (abs((b.x+b.w)-a.x) <= abs((a.z+a.d)-b.z)) && (abs((b.x+b.w)-a.x) <= abs((b.z+b.d)-a.z)) && (abs((b.x+b.w)-a.x) <= abs((a.y+a.h)-b.y)))
 		{
 			self->rCheck = 1;
 			self->collision.w = b.x+b.w;
 		}
-		else if((abs((a.z+a.d)-b.z) <= abs((b.z+b.d)-a.z)) && (abs((a.z+a.d)-b.z) <= abs((a.y+a.h)-b.y)))
+		if((abs((a.z+a.d)-b.z) < 0.1) && (abs((a.z+a.d)-b.z) < abs((b.y+b.h)-a.y)) && (abs((a.z+a.d)-b.z) < abs((a.x+a.w)-b.x)) && (abs((a.z+a.d)-b.z) < abs((b.x+b.w)-a.x)) && (abs((a.z+a.d)-b.z) <= abs((b.z+b.d)-a.z)) && (abs((a.z+a.d)-b.z) <= abs((a.y+a.h)-b.y)))
 		{
 			self->fCheck = 1;
 			self->collision.z = b.z;
 		}
-		else if((abs((b.z+b.d)-a.z) <= abs((a.y+a.h)-b.y)))
+		if((abs((b.z+b.d)-a.z) < 0.1) && (abs((b.z+b.d)-a.z) < abs((b.y+b.h)-a.y)) && (abs((b.z+b.d)-a.z) < abs((a.x+a.w)-b.x)) && (abs((b.z+b.d)-a.z) < abs((b.x+b.w)-a.x)) && (abs((b.z+b.d)-a.z) < abs((a.z+a.d)-b.z)) && (abs((b.z+b.d)-a.z) <= abs((a.y+a.h)-b.y)))
 		{
 			self->bCheck = 1;
 			self->collision.d = b.z+b.d;
 		}
-		else
+		if((abs((a.y+a.h)-b.y) < 0.1) && (abs((a.y+a.h)-b.y) < abs((b.y+b.h)-a.y)) && (abs((a.y+a.h)-b.y) < abs((a.x+a.w)-b.x)) && (abs((a.y+a.h)-b.y) < abs((b.x+b.w)-a.x)) && (abs((a.y+a.h)-b.y) < abs((a.z+a.d)-b.z)) && (abs((a.y+a.h)-b.y) < abs((b.z+b.d)-a.z)))
 		{
 			self->dCheck = 1;
 			self->collision.y = b.y;
