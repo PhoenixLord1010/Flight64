@@ -76,6 +76,12 @@ Entity *entity_new()
 			__entity_list[i].shown = 1;
             vec3d_set(__entity_list[i].scale,1,1,1);
             vec4d_set(__entity_list[i].color,1,1,1,1);
+			__entity_list[i].body.uTang = 1;
+			__entity_list[i].body.dTang = 1;
+			__entity_list[i].body.lTang = 1;
+			__entity_list[i].body.rTang = 1;
+			__entity_list[i].body.fTang = 1;
+			__entity_list[i].body.bTang = 1;
 			__entity_list[i].uid = __uid;
 			__uid++;
             return &__entity_list[i];
@@ -167,7 +173,7 @@ void clear_entities_except(Entity *ent)
 
 
 
-Entity *make_player(Vec3D position, Space *space)
+Entity *make_player(Vec3D position)
 {
 	Entity *ent;
     ent = entity_new();
@@ -192,7 +198,7 @@ Entity *make_player(Vec3D position, Space *space)
 	ent->ck2 = 0;
 	space_add_body(space,&ent->body);
 	Player = ent;
-	make_spear(space);
+	make_spear();
 	make_shadow(&ent->body);
 	return ent;
 }
@@ -336,28 +342,13 @@ void player_think(Entity *self)
 			
 			if(isKeyPressed(SDL_SCANCODE_SPACE) && (self->state == ST_JUMP1 || self->state == ST_JUMP2))	/*Walljump*/
 			{
-				if(dir == 1 && self->body.bCheck)
+				if((dir == 1 && self->body.bCheck) || (dir == 2 && self->body.rCheck) || (dir == 3 && self->body.lCheck) || (dir == 4 && self->body.fCheck))
 				{
 					self->body.velocity.y = 0.5;
-					self->rotation.y += 180;
-				}
+					self->accel = 0.35;
 
-				if(dir == 2 && self->body.rCheck)
-				{
-					self->body.velocity.y = 0.5;
-					self->rotation.y *= -1;
-				}
-
-				if(dir == 3 && self->body.lCheck)
-				{
-					self->body.velocity.y = 0.5;
-					self->rotation.y *= -1;
-				}
-
-				if(dir == 4 && self->body.fCheck)
-				{
-					self->body.velocity.y = 0.5;
-					self->rotation.y += 180;
+					if((dir == 1) || (dir == 4))self->rotation.y = -(self->rotation.y + 180);
+					if((dir == 2) || (dir == 3))self->rotation.y *= -1;
 				}
 			}
 
@@ -455,7 +446,7 @@ void player_think(Entity *self)
 	}
 }
 
-void make_spear(Space *space)
+void make_spear()
 {
 	Entity *ent;
     ent = entity_new();
@@ -636,6 +627,9 @@ void shadow_think(Entity *self)
 	Entity ent;
 	Vec3D start,dir,t1,t2,t3,t4,contact;
 
+	if(self->owner->uCheck)self->shown = 0;
+	else self->shown = 1;
+
 	vec3d_set(start,self->owner->position.x,self->owner->position.y + self->owner->bounds.y,self->owner->position.z);
 	vec3d_set(dir,0,-1000,0);
 	y = self->owner->position.y - 100;
@@ -654,9 +648,12 @@ void shadow_think(Entity *self)
 			vec3d_add(t2,t2,ent.body.position);
 			vec3d_add(t3,t3,ent.body.position);
 			vec3d_add(t4,t4,ent.body.position);
-			if(ray_in_quad(start,dir,t1,t2,t3,t4,&contact))
+			if((t1.x <= self->body.position.x) && (t3.x >= self->body.position.x) && (t1.z <= self->body.position.z) && (t3.z >= self->body.position.z))
 			{
-				if(t1.y > y)y = t1.y;
+				if(ray_in_quad(start,dir,t1,t2,t3,t4,&contact))
+				{
+					if(t1.y > y)y = t1.y;
+				}
 			}
 		}
 	}
@@ -666,10 +663,12 @@ void shadow_think(Entity *self)
 	if(self->body.position.y >= self->owner->position.y)self->body.position.y -= 100;
 	self->body.position.z = self->owner->position.z;
 
+	slog("y = %f",self->body.position.y);
+
 	if(self->owner->type == T_NULL)entity_free(self);
 }
 
-Entity *spawn_snake(Vec3D position, Space *space, int ck1)
+Entity *spawn_snake(Vec3D position, int ck1)
 {
 	Entity *ent;
     ent = entity_new();
@@ -794,7 +793,7 @@ void snake_think(Entity *self)
 		self->body.velocity.z = 0;
 	}
 
-	if(self->body.position.y < -20 || (self->body.position.z > Player->body.position.z + 60))
+	if(self->body.position.y < -20 || (self->body.position.z > Player->body.position.z + 100))
 	{
 		self->body.type = T_NULL;
 		space_remove_body(space,&self->body);
@@ -802,7 +801,7 @@ void snake_think(Entity *self)
 	}
 }
 
-Entity *spawn_eye(Vec3D position, Space *space, int ck1)
+Entity *spawn_eye(Vec3D position, int ck1)
 {
 	Entity *ent;
     ent = entity_new();
@@ -864,7 +863,7 @@ void eye_think(Entity *self)
 		self->body.velocity.z = 0;
 	}
 
-	if(self->body.position.y < -20 || (self->body.position.z > Player->body.position.z + 60))
+	if(self->body.position.y < -20 || (self->body.position.z > Player->body.position.z + 100))
 	{
 		self->body.type = T_NULL;
 		space_remove_body(space,&self->body);
@@ -872,7 +871,7 @@ void eye_think(Entity *self)
 	}
 }
 
-/*Entity *eye_spawner(Vec3D position, Space *space, int ck1, int ck2)
+/*Entity *eye_spawner(Vec3D position, int ck1, int ck2)
 {
 	Entity *ent;
     ent = entity_new();
@@ -898,7 +897,7 @@ void eye_spawner_think(Entity *self)
 	else self->busy--;
 }*/
 
-Entity *spawn_frog(Vec3D position, Space *space)
+Entity *spawn_frog(Vec3D position)
 {
 	Entity *ent;
     ent = entity_new();
@@ -964,7 +963,7 @@ void frog_think(Entity *self)
 		self->body.velocity.z = 0;
 	}
 
-	if(self->body.position.y < -20 || (self->body.position.z > Player->body.position.z + 60))
+	if(self->body.position.y < -20 || (self->body.position.z > Player->body.position.z + 100))
 	{
 		self->body.type = T_NULL;
 		space_remove_body(space,&self->body);
@@ -972,7 +971,7 @@ void frog_think(Entity *self)
 	}
 }
 
-Entity *build_cube(Vec3D position, Space *space)
+Entity *build_cube(Vec3D position)
 {
     Entity *ent;
     ent = entity_new();
@@ -984,12 +983,11 @@ Entity *build_cube(Vec3D position, Space *space)
     vec3d_cpy(ent->body.position,position);
     cube_set(ent->body.bounds,-1,-1,-1,2,2,2);
 	ent->body.tang = 1;
-	ent->body.uTang = 1;
 	space_add_body(space,&ent->body);
     return ent;
 }
 
-Entity *build_ground(Vec3D position, Space *space)
+Entity *build_ground(Vec3D position)
 {
     Entity *ent;
     ent = entity_new();
@@ -1001,24 +999,23 @@ Entity *build_ground(Vec3D position, Space *space)
     vec3d_cpy(ent->body.position,position);
     cube_set(ent->body.bounds,-8,-1,-2,16,2,4);
 	ent->body.tang = 1;
-	ent->body.uTang = 1;
 	space_add_body(space,&ent->body);
     return ent;
 }
 
-void *build_road(Vec3D position, Space *space, int n)
+void *build_road(Vec3D position, int n)
 {	
 	int i;
 	
 	for(i = 0; i < n; i++)
 	{
-		build_ground(position, space);
+		build_ground(position);
 		vec3d_add(position,position,vec3d(0,0,-4));
 	}
 	return;
 }
 
-Entity *build_wall(Vec3D position, Space *space, int i)
+Entity *build_wall(Vec3D position)
 {
 	Entity *ent;
     ent = entity_new();
@@ -1030,12 +1027,11 @@ Entity *build_wall(Vec3D position, Space *space, int i)
     vec3d_cpy(ent->body.position,position);
     cube_set(ent->body.bounds,-1,-4,-3,2,8,6);
 	ent->body.tang = 1;
-	ent->body.uTang = i;
 	space_add_body(space,&ent->body);
     return ent;
 }
 
-Entity *build_spikes(Vec3D position, Space *space, int i, int j)
+Entity *build_spikes(Vec3D position, int i, int j)
 {
 	Entity *ent;
     ent = entity_new();
@@ -1052,7 +1048,7 @@ Entity *build_spikes(Vec3D position, Space *space, int i, int j)
 	ent->ck1 = i;
 	ent->delay = j;
 	space_add_body(space,&ent->body);
-	build_spike_base(position, space);
+	build_spike_base(position);
     return ent;
 }
 
@@ -1083,14 +1079,14 @@ void spike_think(Entity *self)
 	}
 	else self->delay--;
 
-	if(self->body.position.z > Player->body.position.z + 60)
+	if(self->body.position.z > Player->body.position.z + 100)
 	{
 		space_remove_body(space,&self->body);
 		entity_free(self);
 	}
 }
 
-Entity *build_spike_base(Vec3D position, Space *space)
+Entity *build_spike_base(Vec3D position)
 {
 	Entity *ent;
     ent = entity_new();
@@ -1108,7 +1104,7 @@ Entity *build_spike_base(Vec3D position, Space *space)
     return ent;
 }
 
-Entity *build_platform(Vec3D position1, Vec3D position2, Space *space)
+Entity *build_platform(Vec3D position1, Vec3D position2)
 {
 	Entity *ent;
     ent = entity_new();
@@ -1163,7 +1159,7 @@ void platform_think(Entity *self)
 		else
 			self->ck1 = 1;
 
-	if(self->body.position.z > Player->body.position.z + 60)
+	if(self->body.position.z > Player->body.position.z + 100)
 	{
 		self->body.type = T_NULL;
 		space_remove_body(space,&self->body);
@@ -1173,7 +1169,7 @@ void platform_think(Entity *self)
 
 void object_think(Entity *self)
 {
-	if(self->body.position.z > Player->body.position.z + 60)
+	if(self->body.position.z > Player->body.position.z + 100)
 	{
 		self->body.type = T_NULL;
 		space_remove_body(space,&self->body);
@@ -1181,7 +1177,7 @@ void object_think(Entity *self)
 	}
 }
 
-Entity *build_warp(Vec3D position, Space *space)
+Entity *build_warp(Vec3D position)
 {
 	Entity *ent;
     ent = entity_new();
@@ -1200,7 +1196,7 @@ Entity *build_warp(Vec3D position, Space *space)
 
 void warp_think(Entity *self)
 {
-	if(self->body.position.z > Player->body.position.z + 60)
+	if(self->body.position.z > Player->body.position.z + 100)
 	{
 		space_remove_body(space,&self->body);
 		entity_free(self);

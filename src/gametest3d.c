@@ -27,6 +27,7 @@
 #include "sprite.h"
 #include "entity.h"
 #include "space.h"
+#include "spawn.h"
 #include "level.h"
 #include "math.h"
 #include <stdio.h>
@@ -48,7 +49,6 @@ int main(int argc, char *argv[])
 {
     int i;
     float r = 0;
-    //Space *space;
     char bGameLoopRunning = 1;
     Vec3D cameraPosition = {8,5,15};
     Vec3D cameraRotation = {-20,0,0};
@@ -59,12 +59,14 @@ int main(int argc, char *argv[])
 	Uint8 *keys;
     
     init_all();
+
+	spawn_load("spawn.txt");
 	
 	iResolution = glGetUniformLocation(graphics3d_get_shader_program(),"iResolution");
 	iGlobalTime = glGetUniformLocation(graphics3d_get_shader_program(),"iGlobalTime");
     
     space = space_new();
-    space_set_steps(space,100);
+    space_set_steps(space,50);
     
 	glUseProgram(graphics3d_get_shader_program());
 
@@ -76,7 +78,7 @@ int main(int argc, char *argv[])
 		SDL_PumpEvents();
 
 		update_entities();
-		for (i = 0; i < 100;i++)
+		for (i = 0; i < 50; i++)
         {
             space_do_step(space);
         }
@@ -215,5 +217,6 @@ void init_all()
     model_init();
     obj_init();
     entity_init(255);
+	spawn_init(255);
 	InitKeyboard();
 }

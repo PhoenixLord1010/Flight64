@@ -90,9 +90,8 @@ void clear_entities_except(Entity *ent);
 /**
  * @brief creates the player entity
  * @param position the starting position
- * @param space the space to add it to
  */
-Entity *make_player(Vec3D position, Space *space);
+Entity *make_player(Vec3D position);
 
 /**
  * @brief player think function
@@ -102,9 +101,8 @@ void player_think(Entity *self);
 
 /**
  * @brief creates the spear entity
- * @param space the space to add it to
  */
-void make_spear(Space *space);
+void make_spear();
 
 /**
  * @brief spear think function
@@ -127,10 +125,9 @@ void shadow_think(Entity *self);
 /**
  * @brief create snake enemy entity
  * @param position the starting position
- * @param space the space to add it to
  * @param ck1 the direction it circles in
  */
-Entity *spawn_snake(Vec3D position, Space *space, int ck1);
+Entity *spawn_snake(Vec3D position, int ck1);
 
 /**
  * @brief snake enemy think function
@@ -141,10 +138,9 @@ void snake_think(Entity *self);
 /**
  * @brief create eye enemy entity
  * @param position the starting position
- * @param space the space to add it to
  * @param ck1 which direction will it start going
  */
-Entity *spawn_eye(Vec3D position, Space *space, int ck1);
+Entity *spawn_eye(Vec3D position, int ck1);
 
 /**
  * @brief eye enemy think function
@@ -155,11 +151,10 @@ void eye_think(Entity *self);
 /**
  * @brief create eye enemy spawn point entity
  * @param position the spawn position
- * @param space the space to add it to
  * @param ck1 which direction will they be going
  * @param ck2 spawn rate
  */
-Entity *eye_spawner(Vec3D position, Space *space, int ck1, int ck2);
+Entity *eye_spawner(Vec3D position, int ck1, int ck2);
 
 /**
  * @brief eye spawner think function
@@ -170,9 +165,8 @@ void eye_spawner_think(Entity *self);
 /**
  * @brief create frog enemy entity
  * @param position the starting position
- * @param space the space to add it to
  */
-Entity *spawn_frog(Vec3D position, Space *space);
+Entity *spawn_frog(Vec3D position);
 
 /**
  * @brief frog enemy think function
@@ -183,40 +177,35 @@ void frog_think(Entity *self);
 /**
  * @brief create cube entity
  * @param position the starting position
- * @param space the space to add it to
  */
-Entity *build_cube(Vec3D position, Space *space);
+Entity *build_cube(Vec3D position);
 
 /**
  * @brief create ground entity
  * @param position the starting position
- * @param space the space to add it to
  */
-Entity *build_ground(Vec3D position, Space *space);
+Entity *build_ground(Vec3D position);
 
 /**
  * @brief create multiple ground entities in a row
  * @param position the starting position
- * @param space the space to add it to
  * @param n the amount to create
  */
-void *build_road(Vec3D position, Space *space, int n);
+void *build_road(Vec3D position, int n);
 
 /**
  * @brief create wall entity
  * @param position the starting position
- * @param space the space to add it to
  */
-Entity *build_wall(Vec3D position, Space *space, int i);
+Entity *build_wall(Vec3D position);
 
 /**
  * @brief create spike entity
  * @param position the starting position
- * @param space the space to add it to
  * @param i the speed of the spikes
- * @param j the initial delay
+ * @param j the offset
  */
-Entity *build_spikes(Vec3D position, Space *space, int i, int j);
+Entity *build_spikes(Vec3D position, int i, int j);
 
 /**
  * @brief spike entity think function
@@ -227,17 +216,15 @@ void spike_think(Entity *self);
 /**
  * @brief create spike base entity
  * @param position the starting position
- * @param space the space to add it to
  */
-Entity *build_spike_base(Vec3D position, Space *space);
+Entity *build_spike_base(Vec3D position);
 
 /**
  * @brief create moving platform entity
  * @param position1 the first position
  * @param position2 the second position
- * @param space the space to add it to
  */
-Entity *build_platform(Vec3D position1, Vec3D position2, Space *space);
+Entity *build_platform(Vec3D position1, Vec3D position2);
 
 /**
  * @brief moving platform think function
@@ -254,9 +241,8 @@ void object_think(Entity *self);
 /**
  * @brief create warp pad entity
  * @param position the starting position
- * @param space the space to add it to
  */
-Entity *build_warp(Vec3D position, Space *space);
+Entity *build_warp(Vec3D position);
 
 /**
  * @brief warp pad entity think function

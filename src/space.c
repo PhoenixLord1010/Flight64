@@ -72,7 +72,6 @@ static void space_body_update(Space *space,Body *body)
     a.h = body->bounds.h;
     a.d = body->bounds.d;
 
-
     
     for (it = space->bodylist;it != NULL;it = g_list_next(it))
     {

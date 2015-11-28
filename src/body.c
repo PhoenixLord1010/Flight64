@@ -1,5 +1,6 @@
 #include "body.h"
 #include "entity.h"
+#include "math.h"
 
 extern Entity *Player;
 
@@ -37,35 +38,37 @@ void clear_collisions(Body *self)
 
 void check_collisions(Body *self, Body *other, Cube a, Cube b)
 {
+	float what = 25;
+	
 	if(self->type != T_OBJECT && self->tang && other->tang)
 	{
-		if((abs((b.y+b.h)-a.y) < 0.1) && (abs((b.y+b.h)-a.y) <= abs((a.x+a.w)-b.x)) && (abs((b.y+b.h)-a.y) <= abs((b.x+b.w)-a.x)) && (abs((b.y+b.h)-a.y) <= abs((a.z+a.d)-b.z)) && (abs((b.y+b.h)-a.y) <= abs((b.z+b.d)-a.z)) && (abs((b.y+b.h)-a.y) <= abs((a.y+a.h)-b.y)) && (self->velocity.y <= other->velocity.y) && other->uTang)
+		if((fabs((b.y+b.h)-a.y) < 0.75) && (fabs((b.y+b.h)-a.y) < fabs((a.x+a.w)-b.x)) && (fabs((b.y+b.h)-a.y) < fabs((b.x+b.w)-a.x)) && (fabs((b.y+b.h)-a.y) < fabs((a.z+a.d)-b.z)) && (fabs((b.y+b.h)-a.y) < fabs((b.z+b.d)-a.z)) && (fabs((b.y+b.h)-a.y) < fabs((a.y+a.h)-b.y)) && (self->velocity.y <= other->velocity.y) && other->uTang)
 		{
 			self->uCheck = 1;
 			self->collision.h = b.y+b.h;
 			vec3d_cpy(self->collvec,other->velocity);
 		}
-		if((abs((a.x+a.w)-b.x) < 0.1) && (abs((a.x+a.w)-b.x) < abs((b.y+b.h)-a.y)) && (abs((a.x+a.w)-b.x) <= abs((b.x+b.w)-a.x)) && (abs((a.x+a.w)-b.x) <= abs((a.z+a.d)-b.z)) && (abs((a.x+a.w)-b.x) <= abs((b.z+b.d)-a.z)) && (abs((a.x+a.w)-b.x) <= abs((a.y+a.h)-b.y)))
+		if((fabs((a.x+a.w)-b.x) < 0.75) && (fabs((a.x+a.w)-b.x) < fabs((b.y+b.h)-a.y)) && (fabs((a.x+a.w)-b.x) <= fabs((b.x+b.w)-a.x)) && (fabs((a.x+a.w)-b.x) < fabs((a.z+a.d)-b.z)) && (fabs((a.x+a.w)-b.x) < fabs((b.z+b.d)-a.z)) && (fabs((a.x+a.w)-b.x) < fabs((a.y+a.h)-b.y)) && other->lTang)
 		{
 			self->lCheck = 1;
 			self->collision.x = b.x;
 		}
-		if((abs((b.x+b.w)-a.x) < 0.1) && (abs((b.x+b.w)-a.x) < abs((b.y+b.h)-a.y)) && (abs((b.x+b.w)-a.x) < abs((a.x+a.w)-b.x)) && (abs((b.x+b.w)-a.x) <= abs((a.z+a.d)-b.z)) && (abs((b.x+b.w)-a.x) <= abs((b.z+b.d)-a.z)) && (abs((b.x+b.w)-a.x) <= abs((a.y+a.h)-b.y)))
+		if((fabs((b.x+b.w)-a.x) < 0.75) && (fabs((b.x+b.w)-a.x) < fabs((b.y+b.h)-a.y)) && (fabs((b.x+b.w)-a.x) < fabs((a.x+a.w)-b.x)) && (fabs((b.x+b.w)-a.x) < fabs((a.z+a.d)-b.z)) && (fabs((b.x+b.w)-a.x) < fabs((b.z+b.d)-a.z)) && (fabs((b.x+b.w)-a.x) < fabs((a.y+a.h)-b.y)) && other->rTang)
 		{
 			self->rCheck = 1;
 			self->collision.w = b.x+b.w;
 		}
-		if((abs((a.z+a.d)-b.z) < 0.1) && (abs((a.z+a.d)-b.z) < abs((b.y+b.h)-a.y)) && (abs((a.z+a.d)-b.z) < abs((a.x+a.w)-b.x)) && (abs((a.z+a.d)-b.z) < abs((b.x+b.w)-a.x)) && (abs((a.z+a.d)-b.z) <= abs((b.z+b.d)-a.z)) && (abs((a.z+a.d)-b.z) <= abs((a.y+a.h)-b.y)))
+		if((fabs((a.z+a.d)-b.z) < 0.75) && (fabs((a.z+a.d)-b.z) < fabs((b.y+b.h)-a.y)) && (fabs((a.z+a.d)-b.z) < fabs((a.x+a.w)-b.x)) && (fabs((a.z+a.d)-b.z) < fabs((b.x+b.w)-a.x)) && (fabs((a.z+a.d)-b.z) < fabs((b.z+b.d)-a.z)) && (fabs((a.z+a.d)-b.z) < fabs((a.y+a.h)-b.y)) && other->fTang)
 		{
 			self->fCheck = 1;
 			self->collision.z = b.z;
 		}
-		if((abs((b.z+b.d)-a.z) < 0.1) && (abs((b.z+b.d)-a.z) < abs((b.y+b.h)-a.y)) && (abs((b.z+b.d)-a.z) < abs((a.x+a.w)-b.x)) && (abs((b.z+b.d)-a.z) < abs((b.x+b.w)-a.x)) && (abs((b.z+b.d)-a.z) < abs((a.z+a.d)-b.z)) && (abs((b.z+b.d)-a.z) <= abs((a.y+a.h)-b.y)))
+		if((fabs((b.z+b.d)-a.z) < 0.75) && (fabs((b.z+b.d)-a.z) < fabs((b.y+b.h)-a.y)) && (fabs((b.z+b.d)-a.z) < fabs((a.x+a.w)-b.x)) && (fabs((b.z+b.d)-a.z) < fabs((b.x+b.w)-a.x)) && (fabs((b.z+b.d)-a.z) < fabs((a.z+a.d)-b.z)) && (fabs((b.z+b.d)-a.z) < fabs((a.y+a.h)-b.y)) && other->bTang)
 		{
 			self->bCheck = 1;
 			self->collision.d = b.z+b.d;
 		}
-		if((abs((a.y+a.h)-b.y) < 0.1) && (abs((a.y+a.h)-b.y) < abs((b.y+b.h)-a.y)) && (abs((a.y+a.h)-b.y) < abs((a.x+a.w)-b.x)) && (abs((a.y+a.h)-b.y) < abs((b.x+b.w)-a.x)) && (abs((a.y+a.h)-b.y) < abs((a.z+a.d)-b.z)) && (abs((a.y+a.h)-b.y) < abs((b.z+b.d)-a.z)))
+		if((fabs((a.y+a.h)-b.y) < 0.75) && (fabs((a.y+a.h)-b.y) < fabs((b.y+b.h)-a.y)) && (fabs((a.y+a.h)-b.y) < fabs((a.x+a.w)-b.x)) && (fabs((a.y+a.h)-b.y) < fabs((b.x+b.w)-a.x)) && (fabs((a.y+a.h)-b.y) < fabs((a.z+a.d)-b.z)) && (fabs((a.y+a.h)-b.y) < fabs((b.z+b.d)-a.z)) && other->dTang)
 		{
 			self->dCheck = 1;
 			self->collision.y = b.y;
