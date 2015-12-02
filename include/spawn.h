@@ -13,8 +13,8 @@ typedef struct
 }Spawn;
 
 void spawn_init(int max_spawn);
-Spawn spawn_load(char *filename);
-void spawn_save(Spawn *spawn_list, char *filename);
+Spawn *spawn_load(char *filename, int *ct);
+void spawn_save(char *filename);
 
 
 #endif

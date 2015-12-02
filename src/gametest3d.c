@@ -27,7 +27,7 @@
 #include "sprite.h"
 #include "entity.h"
 #include "space.h"
-#include "spawn.h"
+#include "map.h"
 #include "level.h"
 #include "math.h"
 #include <stdio.h>
@@ -57,10 +57,14 @@ int main(int argc, char *argv[])
 	GLint iGlobalTime;
 	int keyn;
 	Uint8 *keys;
+	Map *map1;
+	int isDrawn = 0;
     
     init_all();
 
-	spawn_load("spawn.txt");
+	map1 = map_load("spawn.txt");
+	//spawn_load("spawn.txt");
+	//spawn_save("spawn2.txt");
 	
 	iResolution = glGetUniformLocation(graphics3d_get_shader_program(),"iResolution");
 	iGlobalTime = glGetUniformLocation(graphics3d_get_shader_program(),"iGlobalTime");
@@ -172,6 +176,12 @@ int main(int argc, char *argv[])
         glUniform3f(iResolution, SCREEN_WIDTH, SCREEN_HEIGHT, 100.0f);
 		glUniform1f(iGlobalTime, SDL_GetTicks() / 1000.0f);
         
+		if(!isDrawn)
+		{
+			map_draw(map1);
+			isDrawn++;
+		}
+		
 		glPushMatrix();
 			set_camera(
 				cameraPosition,
@@ -179,7 +189,8 @@ int main(int argc, char *argv[])
 			entity_draw_all();  
         glPopMatrix();
 
-		update_level(space);
+		
+		//update_level(space);
 		UpdateKeyboard();
 
 		for(i = 0; i < 10; i++)

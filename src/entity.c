@@ -209,7 +209,7 @@ void player_think(Entity *self)
 	float accel = 0.02;
 	float decel = 0.01;
 	float rot = 4;
-	float grav = -2;
+	float grav = -0.75;
 	float weight = 0.04;
 	float dash = 0.4;
 	int dir = 0;

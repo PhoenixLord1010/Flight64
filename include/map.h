@@ -4,10 +4,11 @@
 #include "collisions.h"
 #include "bsp.h"
 #include "spawn.h"
+#include "entity.h"
 
 typedef struct
 {
-    char mapname[128];
+    char *mapname;
     Cube bounds;		/**<absolute world bounds*/
     BSP *bsp;			/**<static world geometry for collision*/
     Obj *obj;			/**<object to draw*/
@@ -21,7 +22,7 @@ typedef struct
  * @param filename the map file to load
  * @param id which of the spawn items to use as the player spawn point
  */
-Map *map_load(char *filename,char *id);
+Map *map_load(char *filename);
 
 void map_draw(Map *map);
 
