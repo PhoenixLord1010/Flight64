@@ -1,7 +1,7 @@
 #ifndef __BODY_H__
 #define __BODY_H__
 
-#include "vector.h"
+#include "types.h"
 #include "collisions.h"
 #include "mgl_callback.h"
 

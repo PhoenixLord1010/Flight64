@@ -1,7 +1,7 @@
 #ifndef __SPAWN_H__
 #define __SPAWN_H__
 
-#include "vector.h"
+#include "types.h"
 
 typedef struct
 {

@@ -19,7 +19,7 @@ static void model_delete(Model *model)
 {
     if (!model)return;
     
-    FreeSprite(model->texture);
+    sprite_free(&model->texture);
     if (model->vertex_array)
     {
         free(model->vertex_array);
@@ -88,7 +88,7 @@ void model_assign_texture(Model *model,char *texture)
 {
     Sprite *sprite;
     if (!model)return;
-    sprite = LoadSprite(texture,-1,-1);
+    sprite = sprite_load(texture,-1,-1);
     if (!sprite)return;
     model->texture = sprite;
 }

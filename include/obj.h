@@ -21,7 +21,7 @@
  *    SOFTWARE.
  */
 #include "model.h"
-#include "vector.h"
+#include "types.h"
 
 /**
  * @purpse provide an interface to load and parse object files into the model data type
@@ -41,7 +41,7 @@ typedef struct
 
 typedef struct
 {
-    char   filename[512];
+    Text   filename;
     
     Uint32 num_tris;
     Uint32 num_vertices;

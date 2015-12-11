@@ -1,5 +1,6 @@
 #include "op_3d.h"
 #include <stdlib.h>
+#include <stdio.h>
 
 
 float edge_length_3d(Vec3D e1,Vec3D e2)
@@ -96,6 +97,61 @@ float ray_in_plane(
     contact->z = start.z + (dir.z * t);
   }
   return -1;
+}
+
+int ray_in_triangle3d(
+  Vec3D start,
+  Vec3D dir,
+  Triangle3D tri,
+  Vec3D *contact)
+{
+  return ray_in_triangle(
+    start,
+    dir,
+    tri.t1,
+    tri.t2,
+    tri.t3,
+    contact);
+}
+
+int ray_in_triangle(
+  Vec3D start,
+  Vec3D dir,
+  Vec3D t1,
+  Vec3D t2,
+  Vec3D t3,
+  Vec3D *contact)
+{
+  float t;
+  Vec3D normal;
+  float D;
+  Vec3D intersectPoint;
+  
+  get_triangle_plane(t1,t2,t3,&normal,&D);
+  t = ray_in_plane(
+    start,
+    dir,
+    normal,
+    D,
+    &intersectPoint);
+  if ((t <= 0)|| (t > 1))
+  {
+    return 0;
+  }
+  if (point_in_triangle(
+    intersectPoint,
+    t1,
+    t2,
+    t3,
+    &normal))
+  {
+    if (contact)
+    {
+      vec3d_cpy((*contact),intersectPoint);
+    }
+    return 1;
+  }
+  return 0;
 }
 
 int point_in_triangle(
@@ -270,4 +326,31 @@ int ray_in_quad(
     return 1;
   }
   return 0;
+}
+
+int ray_in_quad3d(
+  Vec3D start,
+  Vec3D dir,
+  Quad3D quad,
+  Vec3D *contact)
+{
+  return ray_in_quad(
+    start,
+    dir,
+    quad.t1,
+    quad.t2,
+    quad.t3,
+    quad.t4,
+    contact);
+}
+
+
+void print_quad3d(Text out,Quad3D quad)
+{
+  Text line1,line2,line3,line4;
+  vec3d_print(line1, quad.t1);
+  vec3d_print(line2, quad.t2);
+  vec3d_print(line3, quad.t3);
+  vec3d_print(line4, quad.t4);
+  sprintf(out,"{%s,%s,%s,%s}",line1,line2,line3,line4);
 }

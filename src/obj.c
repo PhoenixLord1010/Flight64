@@ -181,7 +181,7 @@ void obj_file_parse(Obj * model, FILE* file)
     int  numnormals = 0;
     int  numtexcoords = 0;
     int  numfaces = 0;
-    char buf[128];
+    Line buf;
     float x,y,z;
     GLuint t1,t2,t3,v1,v2,v3,n1,n2,n3;
         
@@ -428,7 +428,7 @@ void obj_draw(
     if(texture != NULL)
     {
         glEnable(GL_TEXTURE_2D);
-        glBindTexture(GL_TEXTURE_2D,texture->texture);
+		glBindTexture(GL_TEXTURE_2D,texture->_glImage);
     }
     
     glEnable(GL_COLOR_MATERIAL);

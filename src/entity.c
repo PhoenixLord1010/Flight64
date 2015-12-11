@@ -61,7 +61,7 @@ void entity_free(Entity *ent)
     }
     ent[0].inuse = 0;
 	obj_free(ent->objModel);
-    FreeSprite(ent->texture);
+    sprite_free(&ent->texture);
 }
 
 Entity *entity_new()
@@ -180,7 +180,7 @@ Entity *make_player(Vec3D position)
     if (!ent)return NULL;
 
     ent->objModel = obj_load("models/player.obj");
-    ent->texture = LoadSprite("models/player_text.png",1024,1024);
+    ent->texture = sprite_load("models/player_text.png",1024,1024);
     ent->think = player_think;
 	ent->state = ST_IDLE;
     vec3d_cpy(ent->body.position,position);
@@ -453,7 +453,7 @@ void make_spear()
     if (!ent)return;
 
     ent->objModel = obj_load("models/spear.obj");
-    ent->texture = LoadSprite("models/spear_text.png",1024,1024);
+    ent->texture = sprite_load("models/spear_text.png",1024,1024);
     ent->think = spear_think;
 	ent->shown = 0;
 	vec3d_cpy(ent->body.position,
@@ -609,7 +609,7 @@ void make_shadow(Body *owner)
     if (!ent)return;
 
     ent->objModel = obj_load("models/shadow.obj");
-    ent->texture = LoadSprite("models/shadow_text.png",1024,1024);
+    ent->texture = sprite_load("models/shadow_text.png",1024,1024);
     ent->think = shadow_think;
 	vec3d_cpy(ent->body.position,owner->position);
 	cube_set(ent->body.bounds,owner->bounds.x,-0.05,owner->bounds.z,owner->bounds.w,0.1,owner->bounds.d);
@@ -663,7 +663,7 @@ void shadow_think(Entity *self)
 	if(self->body.position.y >= self->owner->position.y)self->body.position.y -= 100;
 	self->body.position.z = self->owner->position.z;
 
-	slog("y = %f",self->body.position.y);
+	//slog("y = %f",self->body.position.y);
 
 	if(self->owner->type == T_NULL)entity_free(self);
 }
@@ -675,7 +675,7 @@ Entity *spawn_snake(Vec3D position, int ck1)
     if (!ent)return NULL;
 
     ent->objModel = obj_load("models/snake.obj");
-    ent->texture = LoadSprite("models/snake_text.png",1024,1024);
+    ent->texture = sprite_load("models/snake_text.png",1024,1024);
     ent->think = snake_think;
 	ent->state = ST_WALK;
     vec3d_cpy(ent->body.position,position);
@@ -808,7 +808,7 @@ Entity *spawn_eye(Vec3D position, int ck1)
     if (!ent)return NULL;
 
     ent->objModel = obj_load("models/eye.obj");
-    ent->texture = LoadSprite("models/eye_text.png",1024,1024);
+    ent->texture = sprite_load("models/eye_text.png",1024,1024);
     ent->think = eye_think;
 	ent->state = ST_IDLE;
     vec3d_cpy(ent->body.position,position);
@@ -904,7 +904,7 @@ Entity *spawn_frog(Vec3D position)
     if (!ent)return NULL;
 
     ent->objModel = obj_load("models/frog.obj");
-    ent->texture = LoadSprite("models/frog_text.png",1024,1024);
+    ent->texture = sprite_load("models/frog_text.png",1024,1024);
     ent->think = frog_think;
 	ent->state = ST_WALK;
     vec3d_cpy(ent->body.position,position);
@@ -978,7 +978,7 @@ Entity *build_cube(Vec3D position)
     if (!ent)return NULL;
 
     ent->objModel = obj_load("models/cube.obj");
-    ent->texture = LoadSprite("models/cube_text.png",1024,1024);
+    ent->texture = sprite_load("models/cube_text.png",1024,1024);
 	ent->think = object_think;
     vec3d_cpy(ent->body.position,position);
     cube_set(ent->body.bounds,-1,-1,-1,2,2,2);
@@ -994,7 +994,7 @@ Entity *build_ground(Vec3D position)
     if (!ent)return NULL;
  
     ent->objModel = obj_load("models/ground.obj");
-    ent->texture = LoadSprite("models/ground_text.png",1024,1024);
+    ent->texture = sprite_load("models/ground_text.png",1024,1024);
 	ent->think = object_think;
     vec3d_cpy(ent->body.position,position);
     cube_set(ent->body.bounds,-8,-1,-2,16,2,4);
@@ -1022,7 +1022,7 @@ Entity *build_wall(Vec3D position)
     if (!ent)return NULL;
  
     ent->objModel = obj_load("models/wall.obj");
-    ent->texture = LoadSprite("models/wall_text.png",1024,1024);
+    ent->texture = sprite_load("models/wall_text.png",1024,1024);
 	ent->think = object_think;
     vec3d_cpy(ent->body.position,position);
     cube_set(ent->body.bounds,-1,-4,-3,2,8,6);
@@ -1038,7 +1038,7 @@ Entity *build_spikes(Vec3D position, int i, int j)
     if (!ent)return NULL;
 
     ent->objModel = obj_load("models/spikes.obj");
-    ent->texture = LoadSprite("models/spikes_text.png",1024,1024);
+    ent->texture = sprite_load("models/spikes_text.png",1024,1024);
 	ent->think = spike_think;
     vec3d_cpy(ent->body.position,position);
     cube_set(ent->body.bounds,-8,-1,-1,16,2,2);
@@ -1095,7 +1095,7 @@ Entity *build_spike_base(Vec3D position)
         return NULL;
     }
     ent->objModel = obj_load("models/spike_base.obj");
-    ent->texture = LoadSprite("models/spike_base_text.png",1024,1024);
+    ent->texture = sprite_load("models/spike_base_text.png",1024,1024);
 	ent->think = object_think;
     vec3d_cpy(ent->body.position,position);
     cube_set(ent->body.bounds,-8,-1,-1,16,2,2);
@@ -1111,7 +1111,7 @@ Entity *build_platform(Vec3D position1, Vec3D position2)
     if (!ent)return NULL;
 
     ent->objModel = obj_load("models/platform.obj");
-    ent->texture = LoadSprite("models/platform_text.png",1024,1024);
+    ent->texture = sprite_load("models/platform_text.png",1024,1024);
 	ent->think = platform_think;
     vec3d_cpy(ent->body.position,position1);
     cube_set(ent->body.bounds,-2,-0.5,-1.5,4,1,3);
@@ -1184,7 +1184,7 @@ Entity *build_warp(Vec3D position)
     if (!ent)return NULL;
 
     ent->objModel = obj_load("models/warp.obj");
-    ent->texture = LoadSprite("models/warp_text.png",1024,1024);
+    ent->texture = sprite_load("models/warp_text.png",1024,1024);
 	ent->think = object_think;
     vec3d_cpy(ent->body.position,position);
     cube_set(ent->body.bounds,-1.5,-0.25,-1.5,3,0.5,3);

@@ -45,6 +45,3 @@ void _slog(char *f,int l,char *msg,...)
         va_end(ap);
     }
 }
-
-
-/*eol@eof*/

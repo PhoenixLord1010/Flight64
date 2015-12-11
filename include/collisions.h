@@ -3,7 +3,7 @@
 
 #include "obj.h"
 #include "sprite.h"
-#include "vector.h"
+#include "types.h"
 
 typedef struct
 {

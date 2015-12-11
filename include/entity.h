@@ -2,7 +2,7 @@
 #define __ENTITY_H__
 
 #include "obj.h"
-#include "vector.h"
+#include "types.h"
 #include "sprite.h"
 #include "space.h"
 
@@ -17,7 +17,7 @@ typedef struct Entity_S
 	int inuse;
 	int shown;
     int uid;			/**<unique id of this entity*/
-    char name[128];
+    Line name;
 	int state;
     Vec3D acceleration;
     Vec3D rotation;

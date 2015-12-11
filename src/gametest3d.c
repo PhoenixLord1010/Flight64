@@ -1,33 +1,18 @@
-/**
- * gametest3d
- * @license The MIT License (MIT)
- *   @copyright Copyright (c) 2015 EngineerOfLies
- *    Permission is hereby granted, free of charge, to any person obtaining a copy
- *    of this software and associated documentation files (the "Software"), to deal
- *    in the Software without restriction, including without limitation the rights
- *    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- *    copies of the Software, and to permit persons to whom the Software is
- *    furnished to do so, subject to the following conditions:
- *    The above copyright notice and this permission notice shall be included in all
- *    copies or substantial portions of the Software.
- *    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- *    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- *    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- *    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- *    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- *    SOFTWARE.
- */
 #include "mgl_callback.h"
 #include "simple_logger.h"
 #include "graphics3d.h"
+#include "sprite.h"
 #include "shader.h"
 #include "obj.h"
-#include "vector.h"
+#include "types.h"
 #include "sprite.h"
 #include "entity.h"
 #include "space.h"
 #include "map.h"
+#include "camera.h"
+#include "font.h"
+#include "input.h"
+#include "mouse.h"
 #include "level.h"
 #include "math.h"
 #include <stdio.h>
@@ -66,13 +51,13 @@ int main(int argc, char *argv[])
 	//spawn_load("spawn.txt");
 	//spawn_save("spawn2.txt");
 	
-	iResolution = glGetUniformLocation(graphics3d_get_shader_program(),"iResolution");
-	iGlobalTime = glGetUniformLocation(graphics3d_get_shader_program(),"iGlobalTime");
+	iResolution = glGetUniformLocation(get_shader_program(),"iResolution");
+	iGlobalTime = glGetUniformLocation(get_shader_program(),"iGlobalTime");
     
     space = space_new();
     space_set_steps(space,50);
     
-	glUseProgram(graphics3d_get_shader_program());
+	glUseProgram(get_shader_program());
 
     while (bGameLoopRunning)
     {
@@ -171,7 +156,7 @@ int main(int argc, char *argv[])
         }*/
 		
 		
-        graphics3d_frame_begin();
+        graphics_frame_begin();
 		
         glUniform3f(iResolution, SCREEN_WIDTH, SCREEN_HEIGHT, 100.0f);
 		glUniform1f(iGlobalTime, SDL_GetTicks() / 1000.0f);
@@ -202,7 +187,7 @@ int main(int argc, char *argv[])
 			if(Player->body.position.y > (cameraPosition.y - 2))cameraPosition.y+=0.035;
 		}
 
-        graphics3d_next_frame();
+        graphics_frame_end();
     } 
     return 0;
 }
@@ -220,14 +205,17 @@ void set_camera(Vec3D position, Vec3D rotation)
 void init_all()
 {
 	init_logger("flight64.log");
-    if (graphics3d_init(1024,768,1,"flight64",33) != 0)
-    {
-        return -1;
-    }
-
+    graphics_config();
+	graphics_init();
+	sprite_init();
+	camera_config();
+	camera_init();
     model_init();
     obj_init();
     entity_init(255);
 	spawn_init(255);
+	font_init();
+	input_init();
+	mouse_init();
 	InitKeyboard();
 }

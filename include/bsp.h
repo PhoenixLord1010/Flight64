@@ -1,7 +1,7 @@
 #ifndef __BSP_H__
 #define __BSP_H__
 
-#include "vector.h"
+#include "types.h"
 #include "obj.h"
 
 #define BSP_L 0
