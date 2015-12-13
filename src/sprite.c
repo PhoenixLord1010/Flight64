@@ -350,7 +350,6 @@ void sprite_draw_transformed(
   RectFloat src;
   Vec3D pos;
   float left,right,top,bottom;
-  GLdouble scrx, scry, glx, gly, glz;
 
   if(sprite == NULL)
   {
@@ -370,17 +369,17 @@ void sprite_draw_transformed(
   src.w = sprite->frameTextureWidth + src.x;
   src.h = sprite->frameTextureHeight + src.y;
   
-  scrx = (GLdouble)x;
-  scry = _graphics_view.viewPort[3] - (GLdouble)y;
-  glx = (GLdouble)pos.x;
-  gly = (GLdouble)pos.y;
-  glz = (GLdouble)pos.z;
-  gluUnProject(scrx,scry,0.99f,
-		_graphics_view.modelView,
+  opengl_get_gl_coordinate(
+        x,
+        y,
+        0.99f,
+        _graphics_view.modelView,
         _graphics_view.projection,
         _graphics_view.viewPort,
-        &glx,&gly,&glz
-  );
+        &pos.x,
+        &pos.y,
+        &pos.z
+    );
   
   glBindTexture(GL_TEXTURE_2D,sprite->_glImage);
   if (!hFlip)

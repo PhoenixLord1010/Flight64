@@ -43,10 +43,10 @@ void button_configure()
   vec3d_set(__component_button_color[1],1,1,0);
   vec3d_set(__component_button_color[2],0.6,0.6,0.6);
   vec3d_set(__component_button_color[3],0.3,0.2,0.3);
-  strcpy(buttonfile,"images/UI/btn.png");
-  strcpy(buttonhitfile,"images/UI/btn_hit.png");
-  strcpy(buttonhighfile,"images/UI/btn_high.png");
-  strcpy(buttonsleepfile,"images/UI/btn_sleep.png");
+  strcpy(buttonfile,"images/btn.png");
+  strcpy(buttonhitfile,"images/btn_hit.png");
+  strcpy(buttonhighfile,"images/btn_high.png");
+  strcpy(buttonsleepfile,"images/btn_sleep.png");
   
   __component_stock_button[0] = sprite_load(buttonfile,-1,-1);
   __component_stock_button[1] = sprite_load(buttonhighfile,-1,-1);
@@ -588,114 +588,4 @@ void component_button_set_activation(Component* comp,
   button->activeOnRelease = release;
   button->activeOnPress = press;
   button->activeOnHold = hold;
-}
-
-Component *component_button_load(RectFloat winrect)
-{
-  Component *comp = NULL;
-  Line buttonType;
-  Uint32 id;
-  Uint32 fontSize = __component_button_font_size;
-  RectFloat rect;
-  Line justify = "NONE";
-  Line buttonText;
-  Line name;
-  Line hotkey;
-  Line hotmod;
-  int hotkeybutton = 0;
-  int hotkeymod = 0;
-  Line buttonFile;
-  Line buttonHighFile;
-  Line buttonHitFile;
-  int active_on_hold;
-  int active_on_press;
-  int active_on_release;
-  Vec3D backgroundColor;
-  float backgroundAlpha;
-  Vec3D highlightColor;
-  Vec3D pressColor;
-  int  center = 0;
-
-  active_on_hold = __component_button_hold_active;
-  active_on_press = __component_button_press_active;
-  active_on_release = __component_button_release_active;
-
-  if (line_cmp(justify,"CENTER") == 0)center = 1;
-  if (line_cmp(buttonType,"STOCK") == 0)
-  {
-    comp = button_stock_new(
-      id,
-      name,
-      rect,
-      winrect,
-      buttonText,
-      font_justify_from_string(justify),
-      hotkeybutton,
-      hotkeymod,
-      0
-    );
-  }
-  else if (line_cmp(buttonType,"TEXT") == 0)
-  {
-    comp = button_text_new(
-      id,
-      name,
-      rect,
-      winrect,
-      buttonText,
-      font_justify_from_string(justify),
-      fontSize,
-      hotkeybutton,
-      hotkeymod,
-      0
-    );
-  }
-  else if (line_cmp(buttonType,"RECT") == 0)
-  {
-    comp = button_new(
-      id,
-      name,
-      rect,
-      winrect,
-      buttonText,
-      fontSize,
-      ButtonRect,
-      hotkeybutton,
-      hotkeymod,
-      center,
-      font_justify_from_string(justify),
-      buttonFile,
-      buttonHighFile,
-      buttonHitFile,
-      backgroundColor,
-      backgroundAlpha,
-      highlightColor,
-      pressColor
-    );
-  }
-  else if (line_cmp(buttonType,"CUSTOM") == 0)
-  {
-    comp = button_new(
-      id,
-      name,
-      rect,
-      winrect,
-      buttonText,
-      fontSize,
-      ButtonCustom,
-      hotkeybutton,
-      hotkeymod,
-      center,
-      font_justify_from_string(justify),
-      buttonFile,
-      buttonHighFile,
-      buttonHitFile,
-      backgroundColor,
-      backgroundAlpha,
-      highlightColor,
-      pressColor
-    );
-  }
-  component_button_set_activation(comp,active_on_release,active_on_press,active_on_hold);
-  return comp;
 }

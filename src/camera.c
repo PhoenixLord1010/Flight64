@@ -16,10 +16,9 @@ void camera_first_update(Camera *cam, void *data);
 
 void camera_config()
 {
-  Line temp;
   memset(&__camera,0,sizeof(Camera));
   __camera.cameratype = Camera2D;
-  __camera.followHeight = 10;
+  __camera.followHeight = 4;
   __camera.moveStep = 1;
 }
 
@@ -34,11 +33,11 @@ void camera_init()
   {
     case CameraEditor:
       __camera.update = camera_editor_update;
-      __camera.position.z = __camera.followHeight;
+      __camera.position.y = __camera.followHeight;
       break;
     case Camera2D:
       __camera.update = camera_2d_update;
-      __camera.position.z = __camera.followHeight;
+      __camera.position.y = __camera.followHeight;
       break;
     case CameraThird:
       __camera.update = camera_third_update;
@@ -59,12 +58,12 @@ void camera_editor_update(Camera *cam, void *data)
   {
     mouse_get_motion(&x, &y);
     cam->position.x += (-x * __camera.moveStep);
-    cam->position.y += (y * __camera.moveStep);
+    cam->position.z += (y * __camera.moveStep);
   }
   if (mouse_input_held(MouseLeft) && mouse_input_held(MouseRight))
   {
     mouse_get_motion(&x, &y);
-    cam->position.z += (-y * __camera.moveStep);
+    cam->position.y += (-y * __camera.moveStep);
   }
 }
 
@@ -93,7 +92,6 @@ void camera_update()
 
 void camera_setup()
 {
-  /*TODO: verify rotation*/
   glRotatef(-__camera.rotation.x, 1.0f, 0.0f, 0.0f);
   glRotatef(-__camera.rotation.y, 0.0f, 1.0f, 0.0f);
   glRotatef(-__camera.rotation.z, 0.0f, 0.0f, 1.0f);
@@ -104,7 +102,7 @@ void camera_setup()
 
 void camera_set_height(float dist)
 {
-  __camera.position.z = __camera.followHeight = dist;
+  __camera.position.y = __camera.followHeight = dist;
 }
 
 void camera_set_target_orientation(CameraGetTargetOri targetFunc)
@@ -119,12 +117,12 @@ void camera_set_target(void *target)
 
 void camera_set_yaw(float yaw)
 {
-  __camera.rotation.z = yaw;
+  __camera.rotation.y = yaw;
 }
 
 void camera_set_roll(float roll)
 {
-  __camera.rotation.y = roll;
+  __camera.rotation.z = roll;
 }
 
 void camera_set_pitch(float pitch)

@@ -61,18 +61,32 @@ enum ListTypes {
   ListDock		/**<items are drawn left to right.  fit within bounding rect*/
 };
 
+/**
+ * @note the relative float rect for all components follows this convention:
+ * x or y should be from 0-1, 0 being at the far left/top, 1 meaning far right/bottom.
+ * if x or y is negative it is taken in relative postiton from the right/bottom.
+ * w and h are widths relative to the size of the bounding canvas.  So 0.5 means the
+ * width should take up half of the space.
+ * 0 or negative w or h means SNAP to edge.  Just like a 0 would mean for x or y.
+ * @example rect {0.25,-0.25,-1,0.2} means that the top left corner will be at
+ * (0.25,0.75) and the bottom right corner will be at (1,0.95)
+*/
+
+/**
+  @brief this structure serves as a header for all components
+ */
 typedef struct Component_S
 {
-  Uint32	id;
+  Uint32		id;
   Line			name;
   RectFloat		rect;			/**<relative position to draw*/
   RectFloat		bounds;			/**<calculated position to draw*/
   RectFloat		canvas;			/**<area allowed to draw in*/
-  int			canHasFocus;	/**<I apologize for the lolcat reference*/
+  int			canHasFocus;
   int			hasFocus;
   int			state;
   int			oldState;
-  Uint32	type;
+  Uint32		type;
   int			hidden;			/**<if 1, it is not drawn*/
   void			*componentData;
   void			(*data_free)(struct Component_S *component);
@@ -99,7 +113,7 @@ void component_move(Component *component,RectFloat newbounds);
 
 /*Slider functions*/
 Component *slider_new(
-    Uint32	id,
+    Uint32			id,
     Line			name,
     RectFloat		rect,
     RectFloat		bounds,
@@ -112,7 +126,7 @@ Component *slider_new(
     Vec3D			barColor,
     Vec3D			sliderColor,
     float			startPosition,
-    Uint32    sliderType
+    Uint32			sliderType
 );
 Component *percent_bar_create_from_config(RectFloat parentRect);
 Component *slider_common_new(
@@ -144,7 +158,7 @@ Component *label_new(
     float			alpha
   );
 Component *label_new_default(
-	Uint32	id,
+	Uint32			id,
 	char			name,
 	RectFloat		rect,
 	RectFloat        bounds,
@@ -157,9 +171,8 @@ void label_get_text_size(Component *comp,Uint32 *w,Uint32 *h);
 Component *component_create_label_from_config(RectFloat parentRect);
 
 /*Button functions*/
-Component *component_button_load(RectFloat winrect);
 Component *button_new(
-    Uint32	id,
+    Uint32			id,
     Line			name,
     RectFloat		rect,
     RectFloat        bounds,
@@ -240,8 +253,6 @@ Component *line_entry_new(
 );
 void entry_get_line(Component *component,Line output);
 
-void component_get_rect_from_bounds(RectFloat *rect,RectFloat canvas, RectFloat bounds);
-
 /*List functions*/
 Component *list_new(
     Uint32	id,
@@ -268,6 +279,8 @@ int component_list_get_selected_item(Component **itemOut,Component *list);
 int component_list_delete_selected_item(Component *list);
 int component_list_get_nth_item(Component **itemOut,Component *list,Uint32 n);
 
+void component_get_rect_from_bounds(RectFloat *rect,RectFloat canvas, RectFloat bounds);
+
 /*Percent Bar functions*/
 Component *percent_bar_new(
     Uint32	id,
@@ -285,6 +298,9 @@ Component *percent_bar_new(
 void component_percent_bar_set(Component *component,float percent);
 void component_percent_bar_assign_values(Component *component,float *max,float *value);
 
+/*Check Box functions*/
+Component *check_create_from_config(RectFloat parentRect);
+void component_check_set_state(Component *component,int state);
 int component_check_get_state(Component *component);
 
 #endif

@@ -6,6 +6,7 @@
 #include "draw.h"
 #include "simple_logger.h"
 #include <glib.h>
+#include <gstring.h>
 
 /*local types*/
 typedef struct
@@ -61,7 +62,6 @@ int component_get_state(Component *component);
 void component_textinput_new(Component *component);
 void component_textinput_get_text(Component *component,char *text);
 
-
 void component_get_rect_from_bounds(RectFloat *rect,RectFloat canvas, RectFloat bounds);
 
 void component_label_free(Component *component);
@@ -77,7 +77,27 @@ void component_make_label(
     char         * fontName,
     Vec3D       color,
     float       alpha
-  );
+);
+
+void component_config()
+{
+  Line buf;
+  Line sliderVfile,sliderVhighfile,sliderHfile,sliderHhighfile;
+  
+  line_cpy(sliderVfile,"images/UI/slider_v.png");
+  line_cpy(sliderVhighfile,"images/UI/slider_v_high.png");
+  line_cpy(sliderHfile,"images/UI/slider.png");
+  line_cpy(sliderHhighfile,"images/UI/slider_high.png");
+
+  __component_slider[0] = sprite_load(sliderVfile,-1,-1);
+  __component_slider[1] = sprite_load(sliderVhighfile,-1,-1);
+  __component_slider[2] = sprite_load(sliderHfile,-1,-1);
+  __component_slider[3] = sprite_load(sliderHhighfile,-1,-1);
+  line_cpy(__component_slider_files[0],sliderVfile);
+  line_cpy(__component_slider_files[1],sliderVhighfile);
+  line_cpy(__component_slider_files[2],sliderHfile);
+  line_cpy(__component_slider_files[3],sliderHhighfile);
+}
 
 
 Component * component_new()
@@ -239,8 +259,8 @@ void component_slider_draw(Component *component)
     drawPosition.x = r.x + (r.w * slider->position);
   }
   
-  //draw_solid_rect(r,slider->barColor,1);
-  //draw_rect(r,vec3d(1,1,1),1);
+  draw_solid_rect(r,slider->barColor,1);
+  draw_rect(r,vec3d(1,1,1),1);
   if (slider->sliderState == SliderIdle)
   {
     if (slider->slider != NULL)
@@ -335,7 +355,7 @@ void component_draw(Component *component)
   if (!component)return;
   if (component->data_draw == NULL)
   {
-    printf("component %s has no draw function!\n",component->name);
+    slog("component %s has no draw function!\n",component->name);
     return;
   }
   if (!component->hidden)
@@ -696,20 +716,20 @@ Component *slider_common_new(
 }
 
 Component *slider_new(
-    Uint32       id,
-    Line       name,
-    RectFloat  rect,
+    Uint32			id,
+    Line			name,
+    RectFloat		rect,
     RectFloat       bounds,
-    int       vertical,
-    Line       slider,
-    Line       sliderHigh,
-    Line       bar,
-    Line       cap1,
-    Line       cap2,
-    Vec3D      barColor,
-    Vec3D      sliderColor,
-    float      startPosition,
-    Uint32       sliderType
+    int				vertical,
+    Line			slider,
+    Line			sliderHigh,
+    Line			bar,
+    Line			cap1,
+    Line			cap2,
+    Vec3D			barColor,
+    Vec3D			sliderColor,
+    float			startPosition,
+    Uint32			sliderType
   )
 {
   Component *component = NULL;
@@ -806,7 +826,7 @@ Component *label_new(
     return NULL;
   }
   component->id = id;
-  strncpy(component->name,name,WORDLEN);
+  word_cpy(component->name,name);
   rect_copy(&component->rect,rect);
   component->type = LabelComponent;
   return component;

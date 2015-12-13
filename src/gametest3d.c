@@ -13,15 +13,16 @@
 #include "font.h"
 #include "input.h"
 #include "mouse.h"
+#include "component_button.h"
 #include "level.h"
 #include "math.h"
 #include <stdio.h>
 #include <glut.h>
+#include <string.h>
 
 
 #define SCREEN_WIDTH 1024
 #define SCREEN_HEIGHT 768
-#include <string.h>
 
 extern Entity *Player;
 Space *space;
@@ -35,8 +36,10 @@ int main(int argc, char *argv[])
     int i;
     float r = 0;
     char bGameLoopRunning = 1;
-    Vec3D cameraPosition = {8,5,15};
-    Vec3D cameraRotation = {-20,0,0};
+    Vec3D cameraPos;
+	Vec3D cameraCent = {0,0,0};
+    Vec3D cameraRot = {-20,0,0};
+	float cameraDist = 16;
     SDL_Event e;
 	GLint iResolution;
 	GLint iGlobalTime;
@@ -44,6 +47,12 @@ int main(int argc, char *argv[])
 	Uint8 *keys;
 	Map *map1;
 	int isDrawn = 0;
+	Component *btn,*prcnt;
+	RectFloat btn1,btn2,prcnt1,prcnt2;
+	rect_set(&btn1,0,0,-1,-1);
+	rect_set(&btn2,0,0,1024,768);
+	rect_set(&prcnt1,0,0,-1,-1);
+	rect_set(&prcnt2,80,400,400,50);
     
     init_all();
 
@@ -66,128 +75,77 @@ int main(int argc, char *argv[])
 
 		SDL_PumpEvents();
 
+		input_update();
 		update_entities();
+		mouse_update();
+		camera_update();
+		UpdateKeyboard();
 		for (i = 0; i < 50; i++)
         {
             space_do_step(space);
         }
 
-        /*while ( SDL_PollEvent(&e) ) 
-        {
-            if (e.type == SDL_QUIT)
-            {
-                bGameLoopRunning = 0;
-            }
-            else if (e.type == SDL_KEYDOWN)
-            {
-                if (e.key.keysym.sym == SDLK_ESCAPE)
-                {
-                    bGameLoopRunning = 0;
-                }
-                else if (e.key.keysym.sym == SDLK_SPACE)
-                {
-                    cameraPosition.z++;
-                }
-                else if (e.key.keysym.sym == SDLK_z)
-                {
-                    cameraPosition.z--;
-                }
-                else if (e.key.keysym.sym == SDLK_w)
-                {
-                    vec3d_add(
-                        cameraPosition,
-                        cameraPosition,
-                        vec3d(
-                            -sin(cameraRotation.z * DEGTORAD),
-                            cos(cameraRotation.z * DEGTORAD),
-                            0
-                        ));
-                }
-                else if (e.key.keysym.sym == SDLK_s)
-                {
-                    vec3d_add(
-                        cameraPosition,
-                        cameraPosition,
-                        vec3d(
-                            sin(cameraRotation.z * DEGTORAD),
-                            -cos(cameraRotation.z * DEGTORAD),
-                            0
-                        ));
-                }
-                else if (e.key.keysym.sym == SDLK_d)
-                {
-                    vec3d_add(
-                        cameraPosition,
-                        cameraPosition,
-                        vec3d(
-                            cos(cameraRotation.z * DEGTORAD),
-                            sin(cameraRotation.z * DEGTORAD),
-                            0
-                        ));
-                }
-                else if (e.key.keysym.sym == SDLK_a)
-                {
-                    vec3d_add(
-                        cameraPosition,
-                        cameraPosition,
-                        vec3d(
-                            -cos(cameraRotation.z * DEGTORAD),
-                            -sin(cameraRotation.z * DEGTORAD),
-                            0
-                        ));
-                }
-                else if (e.key.keysym.sym == SDLK_LEFT)
-                {
-                    cameraRotation.z += 1;
-                }
-                else if (e.key.keysym.sym == SDLK_RIGHT)
-                {
-                    cameraRotation.z -= 1;
-                }
-                else if (e.key.keysym.sym == SDLK_UP)
-                {
-                    cameraRotation.x += 1;
-                }
-                else if (e.key.keysym.sym == SDLK_DOWN)
-                {
-                    cameraRotation.x -= 1;
-                }
-            }
-        }*/
-		
-		
-        graphics_frame_begin();
+		/*Initialise stuff*/
+        if(!isDrawn)
+		{
+			btn = component_new();
+			btn = button_new(0,"button",btn1,btn2,"push",3,ButtonRect,0,0,1,1,NULL,NULL,NULL,vec3d(255,0,0),0.7,vec3d(0,255,0),vec3d(0,0,255));
+			prcnt = component_new();
+			prcnt = percent_bar_new(1,"percent",prcnt1,prcnt2,0,0,0.1,vec3d(0,255,0),vec3d(255,0,0),0.8,0.8);
+			mouse_show();
+			map_draw(map1);
+			camera_set_position(vec3d(0,5,15));
+			camera_set_pitch(cameraRot.x);
+			isDrawn++;
+		}
+
+		/*Camera Stuff*/
+		if(keys[SDL_SCANCODE_KP_2])cameraRot.x++;
+		if(keys[SDL_SCANCODE_KP_8])cameraRot.x--;
+		if(keys[SDL_SCANCODE_KP_4])cameraRot.y-=2;
+		if(keys[SDL_SCANCODE_KP_6])cameraRot.y+=2;
+		if(keys[SDL_SCANCODE_KP_PLUS])cameraDist+=0.2;
+		if(keys[SDL_SCANCODE_KP_MINUS])cameraDist-=0.2;
+		camera_set_rotation(cameraRot);
+		cameraPos.y = cameraCent.y - (cameraDist * sin(cameraRot.x * DEGTORAD));
+		cameraPos.x = cameraCent.x + ((cameraDist * cos(cameraRot.x * DEGTORAD)) * sin(cameraRot.y * DEGTORAD));
+		cameraPos.z = cameraCent.z + ((cameraDist * cos(cameraRot.x * DEGTORAD)) * cos(cameraRot.y * DEGTORAD));
+		camera_set_position(cameraPos);
+
+
+		graphics_frame_begin();
 		
         glUniform3f(iResolution, SCREEN_WIDTH, SCREEN_HEIGHT, 100.0f);
 		glUniform1f(iGlobalTime, SDL_GetTicks() / 1000.0f);
-        
-		if(!isDrawn)
-		{
-			map_draw(map1);
-			isDrawn++;
-		}
 		
 		glPushMatrix();
-			set_camera(
-				cameraPosition,
-				cameraRotation);
-			entity_draw_all();  
+			camera_setup();
+			entity_draw_all(); 
+			component_draw(btn);
+			component_draw(prcnt);
+			mouse_draw();
         glPopMatrix();
-
 		
-		//update_level(space);
-		UpdateKeyboard();
+		graphics_frame_end();
 
 		for(i = 0; i < 10; i++)
 		{
-			if(Player->body.position.z < (cameraPosition.z - 17))cameraPosition.z-=0.1;
-			if(Player->body.position.z > (cameraPosition.z - 13))cameraPosition.z+=0.1;
+			if(Player->body.position.x < (cameraCent.x - 2))cameraCent.x-=0.1;
+			if(Player->body.position.x > (cameraCent.x + 2))cameraCent.x+=0.1;
+			
+			if(Player->body.position.z < (cameraCent.z - 2))cameraCent.z-=0.1;
+			if(Player->body.position.z > (cameraCent.z + 2))cameraCent.z+=0.1;
 
-			if(Player->body.position.y < (cameraPosition.y - 6))cameraPosition.y-=0.03;
-			if(Player->body.position.y > (cameraPosition.y - 2))cameraPosition.y+=0.035;
+			if(Player->body.position.y < (cameraCent.y - 2))cameraCent.y-=0.03;
+			if(Player->body.position.y > (cameraCent.y + 2))cameraCent.y+=0.035;
 		}
 
-        graphics_frame_end();
+       
+		/*Rotation Fixes*/
+		if(cameraRot.x > 180)cameraRot.x -= 360;
+		if(cameraRot.x <= -180)cameraRot.x += 360;
+		if(cameraRot.y > 180)cameraRot.y -= 360;
+		if(cameraRot.y <= -180)cameraRot.y += 360;
     } 
     return 0;
 }
@@ -217,5 +175,6 @@ void init_all()
 	font_init();
 	input_init();
 	mouse_init();
+	button_configure();
 	InitKeyboard();
 }

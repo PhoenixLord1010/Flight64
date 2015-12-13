@@ -393,16 +393,13 @@ void opengl_get_gl_coordinate(
   GLfloat * glz
   )
 {  
-  GLdouble scrx, scry, *gx, *gy, *gz;
+  GLdouble scrx, scry, gx, gy, gz;
   scrx = (GLdouble)x;
   scry = view[3] - (GLdouble)y;
-  gx = (GLdouble*)glx;
-  gy = (GLdouble*)gly;
-  gz = (GLdouble*)glz;
   
-  gluUnProject(scrx,scry,z,model,proj,view,gx,gy,gz);
+  gluUnProject(scrx,scry,z,model,proj,view,&gx,&gy,&gz);
 
-  glx = (GLfloat*)gx;
-  gly = (GLfloat*)gy;
-  glz = (GLfloat*)gz;
+  *glx = gx;
+  *gly = gy;
+  *glz = gz;
 }
