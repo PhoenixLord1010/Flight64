@@ -249,8 +249,8 @@ void component_button_draw_rect(Component *component)
   r.y++;
   r.h-=2;
   r.w-=2;
-  draw_rect(component->bounds,vec3d(1,1,1),1);
-  draw_rect(r,vec3d(1,1,1),1);
+  //draw_rect(component->bounds,vec3d(1,1,1),1);
+  //draw_rect(r,vec3d(1,1,1),1);
 }
 
 void component_button_draw(Component *component)

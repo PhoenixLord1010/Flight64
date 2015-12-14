@@ -23,6 +23,7 @@ typedef struct Camera_S
   Vec2D    bounds;      /**<width height of screen*/
   Vec3D    position;    /**<position of the cameratype*/
   Vec3D    rotation;    /**<rotation of the camera*/
+  Vec3D	   followPos;
   float    followDist;  /**<the following distance to the target*/
   float    followHeight;/**<how high up the camera should be when following a target*/
   float    moveStep;    /**<how fast the camera moves with mouse.*/
@@ -75,6 +76,10 @@ void camera_set_rotation(Vec3D rotation);
 void camera_set_roll(float roll);
 void camera_set_pitch(float pitch);
 void camera_set_yaw(float yaw);
+void camera_set_dist(float dist);
+float camera_get_dist();
+void camera_set_follow(Vec3D pos);
+void camera_get_follow(Vec3D *pos);
 
 /**
  * @brief get the camera position in 3D space

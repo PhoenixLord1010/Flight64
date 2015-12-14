@@ -1,6 +1,7 @@
 #include "graphics3d.h"
 #include "simple_logger.h"
 #include "shader.h"
+#include "camera.h"
 #include <glu.h>
 #include <glib.h>
 #include <SDL.h>
@@ -55,6 +56,7 @@ void graphics_config()
   __GraphicsConfig.graphicsView.xRes = 1024;
   __GraphicsConfig.graphicsView.yRes = 768;
   __GraphicsConfig.graphicsView.mipmapping = 0;
+  __GraphicsConfig.graphicsView.rotation = vec3d(0,0,0);
   #if SDL_BYTEORDER == SDL_BIG_ENDIAN
   __GraphicsConfig.graphicsView.rMask = 0xff000000;
   __GraphicsConfig.graphicsView.gMask = 0x00ff0000;
@@ -171,7 +173,7 @@ void graphics_init()
 	glGetIntegerv(GL_VIEWPORT,__GraphicsConfig.graphicsView.viewPort);
 	glGetDoublev(GL_MODELVIEW_MATRIX, __GraphicsConfig.graphicsView.modelView);
 	glGetDoublev(GL_PROJECTION_MATRIX, __GraphicsConfig.graphicsView.projection);
-
+	glGetDoublev(GL_PROJECTION_MATRIX, __GraphicsConfig.graphicsView.projectionX);
 
 	setup_default_light();
 	__graphics_initialized = 1;
@@ -304,6 +306,18 @@ void graphics_get_view(GraphicsView *view)
   memcpy(view,&__GraphicsConfig.graphicsView,sizeof(GraphicsView));
 }
 
+void graphics_set_proj(GLdouble proj[16])
+{
+	int i;
+	Vec3D rot;
+
+	camera_get_rotation(&rot);
+	__GraphicsConfig.graphicsView.rotation.x = rot.x;
+	__GraphicsConfig.graphicsView.rotation.y = rot.y;
+	__GraphicsConfig.graphicsView.rotation.z = rot.z;
+	for(i=0; i<16; i++)__GraphicsConfig.graphicsView.projection[i] = proj[i];
+}
+
 float graphics_get_FPS()
 {
   return __graphics_FPS;
@@ -388,18 +402,14 @@ void opengl_get_gl_coordinate(
   const GLdouble * model,
   const GLdouble * proj,
   const GLint    * view,
-  GLfloat * glx,
-  GLfloat * gly,
-  GLfloat * glz
+  GLdouble * glx,
+  GLdouble * gly,
+  GLdouble * glz
   )
 {  
-  GLdouble scrx, scry, gx, gy, gz;
+  GLdouble scrx, scry;
   scrx = (GLdouble)x;
   scry = view[3] - (GLdouble)y;
   
-  gluUnProject(scrx,scry,z,model,proj,view,&gx,&gy,&gz);
-
-  *glx = gx;
-  *gly = gy;
-  *glz = gz;
+  gluUnProject(scrx,scry,z,model,proj,view,glx,gly,glz);
 }

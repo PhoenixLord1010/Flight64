@@ -3,6 +3,7 @@
 #include "graphics3d.h"
 #include "draw.h"
 #include "camera.h"
+#include "simple_logger.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -23,8 +24,8 @@ typedef struct
 
 Mouse __mouse;
 Line  __mouse_file;
-int   __mouse_frame_width = -1;
-int   __mouse_frame_height = -1;
+int   __mouse_frame_width = 1600;
+int   __mouse_frame_height = 1600;
 
 void mouse_close()
 {
@@ -67,6 +68,7 @@ void mouse_update()
       __mouse.timePress = graphics_get_now();
     }
   }
+  //slog("x=%d, y=%d",__mouse.x,__mouse.y);
 }
 
 int mouse_old_state(Uint32 button)
@@ -180,8 +182,8 @@ void mouse_draw_3d_ray()
                    vec3d(1,1,0),
                    1);
   draw_dot_3D(position2,
-                  5,
-                  vec3d(0,1,0),
+                  7,
+                  vec3d(0,1,1),
                   1);
 }
 
@@ -253,27 +255,13 @@ int mouse_in_triangle3d(Triangle3D tri)
 void mouse_get_3d_ray(Vec3D *position,Vec3D *vector)
 {
   Vec3D cam,pos1,pos2,rotation;
-  GLdouble gx,gy,gz;
   GraphicsView view;
   
   graphics_get_view(&view);
   camera_get_position(&cam);
   
-  gx = pos1.x;
-  gy = pos1.y;
-  gz = pos1.z;
-  gluUnProject(__mouse.x, __mouse.y, 0.99, view.modelView, view.projection, view.viewPort, &gx, &gy, &gz);
-  pos1.x = gx;
-  pos1.y = gy;
-  pos1.z = gz;
-
-  gx = pos2.x;
-  gy = pos2.y;
-  gz = pos2.z;
-  gluUnProject(__mouse.x, __mouse.y, 1, view.modelView, view.projection, view.viewPort, &gx, &gy, &gz);
-  pos2.x = gx;
-  pos2.y = gy;
-  pos2.z = gz;
+  gluUnProject(__mouse.x, __mouse.y, 0.99, view.modelView, view.projection, view.viewPort, &pos1.x, &pos1.y, &pos1.z);
+  gluUnProject(__mouse.x, __mouse.y, 1, view.modelView, view.projection, view.viewPort, &pos2.x, &pos2.y, &pos2.z);
 
   pos2.y *= -1;
   pos1.y *= -1;

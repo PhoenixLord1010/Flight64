@@ -27,7 +27,6 @@
 extern Entity *Player;
 Space *space;
 
-void set_camera(Vec3D position, Vec3D rotation);
 void init_all();
 
 
@@ -38,7 +37,7 @@ int main(int argc, char *argv[])
     char bGameLoopRunning = 1;
     Vec3D cameraPos;
 	Vec3D cameraCent = {0,0,0};
-    Vec3D cameraRot = {-20,0,0};
+    Vec3D cameraRot = {0,0,0};
 	float cameraDist = 16;
     SDL_Event e;
 	GLint iResolution;
@@ -46,13 +45,12 @@ int main(int argc, char *argv[])
 	int keyn;
 	Uint8 *keys;
 	Map *map1;
-	int isDrawn = 0;
 	Component *btn,*prcnt;
 	RectFloat btn1,btn2,prcnt1,prcnt2;
 	rect_set(&btn1,0,0,-1,-1);
 	rect_set(&btn2,0,0,1024,768);
 	rect_set(&prcnt1,0,0,-1,-1);
-	rect_set(&prcnt2,80,400,400,50);
+	rect_set(&prcnt2,-7500,-5500,4000,500);
     
     init_all();
 
@@ -68,6 +66,16 @@ int main(int argc, char *argv[])
     
 	glUseProgram(get_shader_program());
 
+	/*Initialise stuff*/
+	btn = component_new();
+	btn = button_new(0,"button",btn1,btn2,"push",3,ButtonRect,0,0,1,1,NULL,NULL,NULL,vec3d(255,0,0),0.7,vec3d(0,255,0),vec3d(0,0,255));
+	prcnt = component_new();
+	prcnt = percent_bar_new(1,"percent",prcnt1,prcnt2,0,0,0.1,vec3d(0,255,0),vec3d(255,0,0),0.9,0.9);
+	mouse_show();
+	map_draw(map1);
+	camera_set_position(vec3d(0,5,15));
+	camera_set_pitch(cameraRot.x);
+
     while (bGameLoopRunning)
     {
 		keys = SDL_GetKeyboardState(&keyn);
@@ -78,26 +86,11 @@ int main(int argc, char *argv[])
 		input_update();
 		update_entities();
 		mouse_update();
-		camera_update();
 		UpdateKeyboard();
 		for (i = 0; i < 50; i++)
         {
             space_do_step(space);
         }
-
-		/*Initialise stuff*/
-        if(!isDrawn)
-		{
-			btn = component_new();
-			btn = button_new(0,"button",btn1,btn2,"push",3,ButtonRect,0,0,1,1,NULL,NULL,NULL,vec3d(255,0,0),0.7,vec3d(0,255,0),vec3d(0,0,255));
-			prcnt = component_new();
-			prcnt = percent_bar_new(1,"percent",prcnt1,prcnt2,0,0,0.1,vec3d(0,255,0),vec3d(255,0,0),0.8,0.8);
-			mouse_show();
-			map_draw(map1);
-			camera_set_position(vec3d(0,5,15));
-			camera_set_pitch(cameraRot.x);
-			isDrawn++;
-		}
 
 		/*Camera Stuff*/
 		if(keys[SDL_SCANCODE_KP_2])cameraRot.x++;
@@ -139,7 +132,7 @@ int main(int argc, char *argv[])
 			if(Player->body.position.y < (cameraCent.y - 2))cameraCent.y-=0.03;
 			if(Player->body.position.y > (cameraCent.y + 2))cameraCent.y+=0.035;
 		}
-
+		camera_set_follow(cameraCent);
        
 		/*Rotation Fixes*/
 		if(cameraRot.x > 180)cameraRot.x -= 360;
@@ -148,16 +141,6 @@ int main(int argc, char *argv[])
 		if(cameraRot.y <= -180)cameraRot.y += 360;
     } 
     return 0;
-}
-
-void set_camera(Vec3D position, Vec3D rotation)
-{
-    glRotatef(-rotation.x, 1.0f, 0.0f, 0.0f);
-    glRotatef(-rotation.y, 0.0f, 1.0f, 0.0f);
-    glRotatef(-rotation.z, 0.0f, 0.0f, 1.0f);
-    glTranslatef(-position.x,
-                 -position.y,
-                 -position.z);
 }
 
 void init_all()

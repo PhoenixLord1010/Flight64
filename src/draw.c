@@ -395,7 +395,8 @@ void draw_solid_rect(RectFloat rect,Vec3D color,float alpha)
   glColor4f(color.x,color.y,color.z,alpha);
   
   graphics_get_view(&view);
-  camera_get_position(&cam);
+  //camera_get_position(&cam);
+  camera_get_follow(&cam);
   opengl_get_gl_coordinate(
       rect.x,
       rect.y,
@@ -448,10 +449,10 @@ void draw_solid_rect(RectFloat rect,Vec3D color,float alpha)
   glPushMatrix();
   
   glBegin( GL_QUADS );
-  glVertex3f(pos.x,pos.y,pos.z);
-  glVertex3f(pos2.x,pos2.y,pos2.z);
-  glVertex3f(pos3.x,pos3.y,pos3.z);
-  glVertex3f(pos4.x,pos4.y,pos4.z);
+  glVertex3f(pos.x + cam.x,pos.y + cam.y,pos.z + cam.z);
+  glVertex3f(pos2.x + cam.x,pos2.y + cam.y,pos2.z + cam.z);
+  glVertex3f(pos3.x + cam.x,pos3.y + cam.y,pos3.z + cam.z);
+  glVertex3f(pos4.x + cam.x,pos4.y + cam.y,pos4.z + cam.z);
   glEnd( );
 
   glPopMatrix();

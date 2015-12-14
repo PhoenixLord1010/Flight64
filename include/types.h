@@ -40,17 +40,17 @@ typedef char Text[512];
 
 typedef struct
 {
-    float x,y;
+    double x,y;
 }Vec2D;
 
 typedef struct
 {
-    float x,y,z;
+    double x,y,z;
 }Vec3D;
 
 typedef struct
 {
-    float x,y,z,w;
+    double x,y,z,w;
 }Vec4D;
 
 #define vec_in_rect(v, r)  ((v.x >= r.x)&&(v.x < (r.x + r.w))&&(v.y >= r.y)&&(v.y < (r.y + r.h)))

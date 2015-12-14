@@ -1,6 +1,7 @@
 #ifndef __GRAPHICS3D_H__
 #define __GRAPHICS3D_H__
 
+#include "types.h"
 #include <SDL.h>
 #include <glew.h>
 
@@ -86,7 +87,9 @@ typedef struct
   int				mipmapping;     /**<true if the engine is using mipmapping*/
   GLint				viewPort[4];    /**<GL view port matrix*/
   GLdouble			modelView[16];  /**<GL model view matrix*/
-  GLdouble			projection[16]; /**<GL Projectio matrix*/
+  GLdouble			projection[16]; /**<GL projection matrix*/
+  GLdouble			projectionX[16];
+  Vec3D			rotation;
 }GraphicsView;
 
 
@@ -204,6 +207,8 @@ float graphics_get_FPS();
  * @param view output.  Current view is loaded into the structure passed.
  */
 void graphics_get_view(GraphicsView *view);
+
+void graphics_set_proj(GLdouble proj[16]);
 
 /**
  * @brief retrieves the current graphics frame time index
