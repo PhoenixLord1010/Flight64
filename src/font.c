@@ -1,6 +1,7 @@
 #include "font.h"
 #include "graphics3d.h"
 #include "simple_logger.h"
+#include "camera.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -22,10 +23,10 @@ void font_init()
 {
   __font_max = 10;
   strncpy(__default_font,"fonts/default.ttf",LINELEN);
-	slog("font: initializing\n");
+  slog("font: initializing\n");
   if (TTF_Init() != 0)
   {
-    slog("font:unable to setup SDL_TTF\n");
+    slog("font:unable to setup SDL_TTF");
     return;
   }
   atexit(TTF_Quit);
@@ -37,7 +38,7 @@ void font_init()
   __font_size[FontSmall] = font_load(__default_font,12);
   __font_size[FontMedium] = font_load(__default_font,14);
   __font_size[FontLarge] = font_load(__default_font,18);
-  __font_size[FontHuge] = font_load(__default_font,24);
+  __font_size[FontHuge] = font_load(__default_font,52);
   slog("font: initialized\n");
 }
 
@@ -115,15 +116,12 @@ Font * font_load(
   font->_font = TTF_OpenFont(filename,pointSize);
   if(font->_font == NULL)
   {
-    //logger_message(
-      //LOG_ERROR,
-      //"Couldn't initialize Font: %s\n",
-      //SDL_GetError());
+    slog("Couldn't initialize Font: %s\n",SDL_GetError());
     font_delete(font);
     return NULL;
   }
   font->point = pointSize;
-  strncpy(font->filename,filename,128);
+  strncpy(font->filename,filename,LINELEN);
   return font;
 }
 
@@ -235,9 +233,7 @@ void font_draw_text(
   if (!font_initialized())return;
   if (size >= FontSizeMax)
   {
-    //logger_message(
-      //LOG_WARN,
-      //"font: passed a font size outside of available range");
+    slog("font: passed a font size outside of available range");
     return;
   }
   font_draw_text_custom(
@@ -249,6 +245,7 @@ void font_draw_text(
     __font_size[size]
   );
 }
+
 /*output of this function needs to be freed*/
 char * font_clean_control_characters(char *in)
 {
@@ -285,44 +282,40 @@ void font_draw_text_custom(
     Font *font
   )
 {
-  Vec3D pos,pos2;
+  Vec3D pos,pos2,pos3,pos4,cam;
   int w,h;
   char *renderText = NULL;
   GLuint image;
-  GLdouble scrx, scry, glx, gly, glz;
   SDL_Surface *temp1 = NULL;
   SDL_Surface *temp = NULL;
   SDL_Surface *fontpic = NULL;
   SDL_Color colortype;
   GraphicsView view;
+
   if (!font_initialized())return;
+
   if((text == NULL) || 
       (strlen(text) <= 0))
   {
-    //logger_message(
-      //LOG_INFO,
-      //"font:passed empty string for text draw.\n");
+    slog("font:passed empty string for text draw.");
     return;
   }
   if (font == NULL)
   {
-    //logger_message(
-      //LOG_INFO,
-      //"font: no font provided for draw.\n");
+    slog("font: no font provided for draw.");
     return;
   }
   if (font->_font == NULL)
   {
-    //logger_message(
-      //LOG_INFO,
-      //"font: bad Font provided for draw.\n");
+    slog("font: bad Font provided for draw.");
     return;
   }
-  //graphics_get_view(&view);
+  camera_get_position(&cam);
+  graphics_get_view(&view);
   colortype.r = 255 * color.x;
   colortype.g = 255 * color.y;
   colortype.b = 255 * color.z;
-  colortype.r = SDL_ALPHA_OPAQUE;
+  colortype.a = SDL_ALPHA_OPAQUE;
   renderText = font_clean_control_characters(text);
   if (!renderText)
   {
@@ -335,9 +328,7 @@ void font_draw_text_custom(
   }
   if (temp == NULL)
   {
-    //logger_message(
-      //LOG_ERROR,
-      //"font: unable to render text from SDL_ttf\n");
+    slog("font: unable to render text from SDL_ttf\n");
       return;
   }
   w = temp->w;
@@ -345,10 +336,7 @@ void font_draw_text_custom(
   /*Creates an opengl compatable RGBA surface*/
   fontpic = SDL_CreateRGBSurface(0,w, h,view.depth,view.rMask,view.gMask,view.bMask,view.aMask);	
   /*Copies pixel data from the image to surface*/
-  //temp1 = SDL_DisplayFormatAlpha(temp);
-  //SDL_SetAlpha(temp1, 0, 0 );
-  SDL_BlitSurface(temp1, NULL, fontpic, NULL);	
-  SDL_FreeSurface(temp1);
+  SDL_BlitSurface(temp, NULL, fontpic, NULL);
   SDL_FreeSurface(temp);
 
   glGenTextures(1, &image);
@@ -363,43 +351,54 @@ void font_draw_text_custom(
   x=x+w;
   y=y+h;
 
-  scrx = (GLdouble)x;
-  scry = view.viewPort[3] - (GLdouble)y;
-  glx = pos.x;
-  gly = pos.y;
-  glz = pos.z;
-  gluUnProject(scrx,scry,0.99f,view.modelView,view.projection,view.viewPort,&glx,&gly,&glz);
-  pos.x = glx;
-  pos.y = gly;
-  pos.z = glz;
 
-  /*opengl_get_gl_coordinate(
+  opengl_get_gl_coordinate(
     x,
     y,
-    2DPLANE_,
+    0.99f,
     view.modelView,
     view.projection,
     view.viewPort,
     &pos.x,
     &pos.y,
     &pos.z
-  );*/
+  );
 
-  gluUnProject(scrx-w,scry-h,0.99f,view.modelView,view.projection,view.viewPort,&glx,&gly,&glz);
-  pos2.x = glx;
-  pos2.y = gly;
-  pos2.z = glz;
-  /*opengl_get_gl_coordinate(
-    x-w,
+  opengl_get_gl_coordinate(
+    x,
     y-h,
-    2DPLANE_,
+    0.99f,
     view.modelView,
     view.projection,
     view.viewPort,
     &pos2.x,
     &pos2.y,
     &pos2.z
-  );*/
+  );
+
+  opengl_get_gl_coordinate(
+    x-w,
+    y-h,
+    0.99f,
+    view.modelView,
+    view.projection,
+    view.viewPort,
+    &pos3.x,
+    &pos3.y,
+    &pos3.z
+  );
+
+  opengl_get_gl_coordinate(
+    x-w,
+    y,
+    0.99f,
+    view.modelView,
+    view.projection,
+    view.viewPort,
+    &pos4.x,
+    &pos4.y,
+    &pos4.z
+  );
 
 
   glEnable(GL_BLEND);
@@ -407,16 +406,16 @@ void font_draw_text_custom(
   glBegin( GL_QUADS );
 
   glTexCoord2f(0.0,0.0);
-  glVertex3f(pos2.x,pos2.y,pos.z);
+  glVertex3f(pos3.x + cam.x,pos3.y + cam.y,pos3.z + cam.z);
 
   glTexCoord2f(0.0,1.0);
-  glVertex3f( pos2.x,pos.y,pos.z);
+  glVertex3f( pos4.x + cam.x,pos4.y + cam.y,pos4.z + cam.z);
 	
   glTexCoord2f(1.0,1.0);
-  glVertex3f( pos.x,pos.y,pos.z);
+  glVertex3f( pos.x + cam.x,pos.y + cam.y,pos.z + cam.z);
 	
   glTexCoord2f(1.0,0.0);
-  glVertex3f( pos.x,pos2.y,pos.z);
+  glVertex3f( pos2.x + cam.x,pos2.y + cam.y,pos2.z + cam.z);
 	
   glEnd( );
   glEnable(GL_DEPTH_TEST);
@@ -453,9 +452,7 @@ void font_draw_text_block(
   if (!font_initialized())return;
   if (size >= FontSizeMax)
   {
-    //logger_message(
-      //LOG_WARN,
-      //"font: passed a font size outside of available range");
+    slog("font: passed a font size outside of available range");
     return;
   }
 
@@ -493,26 +490,20 @@ void font_draw_text_block_custom(
   if (!font_initialized())return;
   if ((thetext == NULL)||(thetext[0] == '\0'))
   {
-    //logger_message(
-      //LOG_INFO,
-      //"font: no text provided for draw.\n");
+    slog("font: no text provided for draw.\n");
     return;
   }
   if (font == NULL)
   {
-    //logger_message(
-      //LOG_INFO,
-      //"font: no font provided for draw.\n");
+    slog("font: no font provided for draw.\n");
     return;
   }
   if (font->_font == NULL)
   {
-    //logger_message(
-      //LOG_INFO,
-      //"font: bad Font provided for draw.\n");
+    slog("font: bad Font provided for draw.\n");
     return;
   }
-  strncpy(text,thetext,512);
+  strncpy(text,thetext,TEXTLEN);
   temptextline[0] = '\0';
   do
   {
@@ -541,8 +532,8 @@ void font_draw_text_block_custom(
       return;
     }
 
-    font_crop_string(text,strlen(word) + space,512);
-    strncpy(textline,temptextline,512);/*keep the last line that worked*/
+    font_crop_string(text,strlen(word) + space,TEXTLEN);
+    strncpy(textline,temptextline,TEXTLEN);/*keep the last line that worked*/
     for (i = 0;i < (space - 1);i++)
     {
       sprintf(temptextline,"%s%c",temptextline,' '); /*add spaces*/
@@ -578,9 +569,7 @@ RectFloat font_get_bounds(
   if (!font_initialized())return r;
   if (size >= FontSizeMax)
   {
-    //logger_message(
-      //LOG_WARN,
-      //"font: passed a font size outside of available range");
+    slog("font: passed a font size outside of available range");
     return r;
   }
   return font_get_bounds_custom(
@@ -598,16 +587,12 @@ RectFloat font_get_bounds_custom(
   if (!font_initialized())return r;
   if ((text == NULL)||(text[0] == '\0'))
   {
-    //logger_message(
-      //LOG_INFO,
-      //"font: no text provided for draw.\n");
+    slog("font: no text provided for draw.\n");
     return r;
   }
   if (font == NULL)
   {
-    //logger_message(
-      //LOG_INFO,
-      //"font: no font provided for draw.\n");
+    slog("font: no font provided for draw.\n");
     return r;
   }
   TTF_SizeText(font->_font,text, (int *)&r.w, (int *)&r.h);
@@ -625,9 +610,7 @@ RectFloat font_get_block_bounds(
   if (!font_initialized())return r;
   if (size >= FontSizeMax)
   {
-    //logger_message(
-      //LOG_WARN,
-      //"font: passed a font size outside of available range");
+    slog("font: passed a font size outside of available range");
     return r;
   }
   return font_get_block_bounds_custom(
@@ -665,13 +648,11 @@ RectFloat font_get_block_bounds_custom(
   }
   if (font == NULL)
   {
-    //logger_message(
-      //LOG_INFO,
-      //"font: no font provided for draw.\n");
+    slog("font: no font provided for draw.\n");
     return r;
   }
 
-  strncpy(text,thetext,512);
+  strncpy(text,thetext,TEXTLEN);
   temptextline[0] = '\0';
   do
   {
@@ -698,8 +679,8 @@ RectFloat font_get_block_bounds_custom(
     {
       break;
     }
-    font_crop_string(text,strlen(word) + 1,512);
-    strncpy(textline,temptextline,512);/*keep the last line that worked*/
+    font_crop_string(text,strlen(word) + 1,TEXTLEN);
+    strncpy(textline,temptextline,TEXTLEN);/*keep the last line that worked*/
     for(i = 0;i < (space - 1);i++)
     {
       sprintf(temptextline,"%s%c",temptextline,' '); /*add spaces*/

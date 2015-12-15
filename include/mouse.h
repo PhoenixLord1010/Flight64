@@ -123,12 +123,16 @@ int mouse_in_rect(RectFloat rect);
  */
 void mouse_get_3d_ray(Vec3D *position,Vec3D *vector);
 
+int mouse_in_3d_quad(Vec3D t1,Vec3D t2,Vec3D t3,Vec3D t4);
+
 /**
  * @brief draw the line under the mouse in 3D space.
  * NOTE: it may only be visible as a red dot with a green border.
  * If the ray intersects something, only the red dot.
  */
 void mouse_draw_3d_ray();
+
+void mouse_draw_dot();
 
 /**
  * @brief get the point where the mouse intersects the provided quad.

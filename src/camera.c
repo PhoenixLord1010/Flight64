@@ -161,8 +161,6 @@ void camera_set_rotation(Vec3D rotation)
   graphics_get_view(&view);
 
   vec3d_cpy(__camera.rotation,rotation);
-  //view.rotation.x = __camera.rotation.x;
-  //view.rotation.z = __camera.rotation.z;
 
   rt[0] = cos((__camera.rotation.y) * DEGTORAD) * cos((__camera.rotation.z) * DEGTORAD);
   rt[1] = (sin((__camera.rotation.x) * DEGTORAD) * sin((__camera.rotation.y) * DEGTORAD) * cos((__camera.rotation.z) * DEGTORAD)) - (cos((__camera.rotation.x) * DEGTORAD) * sin((__camera.rotation.z) * DEGTORAD));

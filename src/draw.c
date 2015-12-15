@@ -325,7 +325,7 @@ void draw_get_3d_position(Vec3D *out,Vec2D in)
 
 void draw_rect(RectFloat rect,Vec3D color,float alpha)
 {
-    Vec3D pos,pos2;
+    Vec3D pos,pos2,pos3,pos4,cam;
   GraphicsView view;
 
   glDisable(GL_DEPTH_TEST);
@@ -335,68 +335,7 @@ void draw_rect(RectFloat rect,Vec3D color,float alpha)
   glColor4f(color.x,color.y,color.z,alpha);
   
   graphics_get_view(&view);
-  opengl_get_gl_coordinate(
-      rect.x,
-      rect.y,
-      0.99f,
-      view.modelView,
-      view.projection,
-      view.viewPort,
-      &pos.x,
-      &pos.y,
-      &pos.z
-  );
-
-  opengl_get_gl_coordinate(
-      rect.x + rect.w,
-      rect.y + rect.h,
-      0.99f,
-      view.modelView,
-      view.projection,
-      view.viewPort,
-      &pos2.x,
-      &pos2.y,
-      &pos2.z
-  );
-
-  glPushMatrix();
-  
-  glBegin( GL_LINES );
-  glVertex3f(pos.x,pos.y,pos.z);
-  glVertex3f(pos2.x,pos.y,pos.z);
-  
-  glVertex3f(pos2.x,pos.y,pos.z);
-  glVertex3f(pos2.x,pos2.y,pos.z);
-  
-  glVertex3f(pos2.x,pos2.y,pos.z);
-  glVertex3f(pos.x,pos2.y,pos.z);
-
-  glVertex3f(pos.x,pos2.y,pos.z);
-  glVertex3f(pos.x,pos.y,pos.z);
-  glEnd( );
-
-  glPopMatrix();
-  glColor4f(1,1,1,1);
-  glDisable(GL_BLEND);
-  glDisable(GL_COLOR_MATERIAL);
-  glEnable(GL_DEPTH_TEST);
-
-}
-
-void draw_solid_rect(RectFloat rect,Vec3D color,float alpha)
-{
-  Vec3D pos,pos2,pos3,pos4,cam;
-  GraphicsView view;
-
-  glDisable(GL_DEPTH_TEST);
-  glEnable(GL_COLOR_MATERIAL);
-  glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
-  glEnable(GL_BLEND);
-  glColor4f(color.x,color.y,color.z,alpha);
-  
-  graphics_get_view(&view);
-  //camera_get_position(&cam);
-  camera_get_follow(&cam);
+  camera_get_position(&cam);
   opengl_get_gl_coordinate(
       rect.x,
       rect.y,
@@ -445,6 +384,91 @@ void draw_solid_rect(RectFloat rect,Vec3D color,float alpha)
       &pos4.z
   );
 
+  glPushMatrix();
+  
+  glBegin( GL_LINES );
+  glVertex3f(pos.x + cam.x,pos.y + cam.y,pos.z + cam.z);
+  glVertex3f(pos2.x + cam.x,pos2.y + cam.y,pos2.z + cam.z);
+  
+  glVertex3f(pos2.x + cam.x,pos2.y + cam.y,pos2.z + cam.z);
+  glVertex3f(pos3.x + cam.x,pos3.y + cam.y,pos3.z + cam.z);
+  
+  glVertex3f(pos3.x + cam.x,pos3.y + cam.y,pos3.z + cam.z);
+  glVertex3f(pos4.x + cam.x,pos4.y + cam.y,pos4.z + cam.z);
+
+  glVertex3f(pos4.x + cam.x,pos4.y + cam.y,pos4.z + cam.z);
+  glVertex3f(pos.x + cam.x,pos.y + cam.y,pos.z + cam.z);
+  glEnd( );
+
+  glPopMatrix();
+  glColor4f(1,1,1,1);
+  glDisable(GL_BLEND);
+  glDisable(GL_COLOR_MATERIAL);
+  glEnable(GL_DEPTH_TEST);
+
+}
+
+void draw_solid_rect(RectFloat rect,Vec3D color,float alpha)
+{
+  Vec3D pos,pos2,pos3,pos4,cam;
+  int testx,testy;
+  GraphicsView view;
+
+  glDisable(GL_DEPTH_TEST);
+  glEnable(GL_COLOR_MATERIAL);
+  glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+  glEnable(GL_BLEND);
+  glColor4f(color.x,color.y,color.z,alpha);
+  
+  graphics_get_view(&view);
+  camera_get_position(&cam);
+  opengl_get_gl_coordinate(
+      rect.x,
+      rect.y,
+      0.99f,
+      view.modelView,
+      view.projection,
+      view.viewPort,
+      &pos.x,
+      &pos.y,
+      &pos.z
+  );
+
+  opengl_get_gl_coordinate(
+      rect.x + rect.w,
+      rect.y,
+      0.99f,
+      view.modelView,
+      view.projection,
+      view.viewPort,
+      &pos2.x,
+      &pos2.y,
+      &pos2.z
+  );
+
+  opengl_get_gl_coordinate(
+      rect.x + rect.w,
+      rect.y + rect.h,
+      0.99f,
+      view.modelView,
+      view.projection,
+      view.viewPort,
+      &pos3.x,
+      &pos3.y,
+      &pos3.z
+  );
+
+  opengl_get_gl_coordinate(
+      rect.x,
+      rect.y + rect.h,
+      0.99f,
+      view.modelView,
+      view.projection,
+      view.viewPort,
+      &pos4.x,
+      &pos4.y,
+      &pos4.z
+  );
   
   glPushMatrix();
   
