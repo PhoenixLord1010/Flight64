@@ -38,6 +38,7 @@ void font_init()
   __font_size[FontSmall] = font_load(__default_font,12);
   __font_size[FontMedium] = font_load(__default_font,14);
   __font_size[FontLarge] = font_load(__default_font,18);
+  __font_size[FontXLarge] = font_load(__default_font,32);
   __font_size[FontHuge] = font_load(__default_font,52);
   slog("font: initialized\n");
 }

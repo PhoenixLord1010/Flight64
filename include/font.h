@@ -13,10 +13,11 @@ enum FontSizes {
   FontSmall  = 1,  /**<12 point loaded font*/
   FontMedium = 2,  /**<14 point loaded font*/
   FontLarge  = 3,  /**<18 point loaded font*/
-  FontHuge   = 4   /**<24 point loaded font*/
+  FontXLarge = 4,  /**<32 point loaded font*/
+  FontHuge   = 5   /**<52 point loaded font*/
 };
 /*below should be one larger than largest font*/
-#define FontSizeMax 5
+#define FontSizeMax 6
 
 enum TextJustify {
   JustifyNone      = -1,

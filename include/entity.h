@@ -78,6 +78,8 @@ void update_entities();
 
 void update_highlight(int ent, int *b);
 
+void update_position(int a, Vec3D v);
+
 int max_entities();
 
 /**

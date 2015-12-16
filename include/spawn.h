@@ -16,7 +16,8 @@ typedef struct
 void spawn_init(int max_spawn);
 Spawn *spawn_load(char *filename, int *ct);
 void spawn_save(char *filename);
-char *get_name(int id);
+void spawn_free(Spawn *ent);
+int spawn_get_ct();
 
 
 #endif

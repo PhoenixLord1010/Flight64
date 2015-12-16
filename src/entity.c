@@ -8,6 +8,7 @@
 
 extern Vec3D pnt;
 extern Space *space;
+extern int m;
 
 static Entity *__entity_list = NULL;
 static int __entity_max = 0;
@@ -165,6 +166,22 @@ void update_highlight(int a, int *b)
 	}
 }
 
+void update_position(int a, Vec3D v)
+{
+	int i;
+
+	for(i = 0; i < __entity_max; i++)
+	{
+		if(__entity_list[i].inuse && __entity_list[i].texture[1] != NULL)
+		{
+			if(__entity_list[i].uid == a)
+			{
+				__entity_list[i].body.position = v;
+			}
+		}
+	}
+}
+
 int max_entities()
 {
 	return __uid;
@@ -225,8 +242,8 @@ Entity *make_player(Vec3D position)
 	ent->ck2 = 0;
 	space_add_body(space,&ent->body);
 	Player = ent;
-	make_spear();
-	make_shadow(&ent->body);
+	if(!m)make_spear();
+	if(!m)make_shadow(&ent->body);
 	return ent;
 }
 
@@ -367,7 +384,7 @@ void player_think(Entity *self)
 				}
 			}
 			
-			if(isKeyPressed(SDL_SCANCODE_SPACE) && (self->state == ST_JUMP1 || self->state == ST_JUMP2))	/*Walljump*/
+			if(isKeyPressed(SDL_SCANCODE_KP_0) && (self->state == ST_JUMP1 || self->state == ST_JUMP2))	/*Walljump*/
 			{
 				if((dir == 1 && self->body.bCheck) || (dir == 2 && self->body.rCheck) || (dir == 3 && self->body.lCheck) || (dir == 4 && self->body.fCheck))
 				{
@@ -379,7 +396,7 @@ void player_think(Entity *self)
 				}
 			}
 
-			if(isKeyPressed(SDL_SCANCODE_SPACE) && self->body.velocity.y <= 0 && self->state != ST_JUMP2 && self->state != ST_POUND)	/*Jump*/
+			if(isKeyPressed(SDL_SCANCODE_KP_0) && self->body.velocity.y <= 0 && self->state != ST_JUMP2 && self->state != ST_POUND)	/*Jump*/
 			{
 				if(self->state == ST_JUMP1)
 				{
@@ -393,13 +410,13 @@ void player_think(Entity *self)
 				}
 			}
 
-			if(isKeyHeld(SDL_SCANCODE_SPACE) && self->body.velocity.y < 0 && self->state != ST_POUND)		/*Float*/
+			if(isKeyHeld(SDL_SCANCODE_KP_0) && self->body.velocity.y < 0 && self->state != ST_POUND)		/*Float*/
 			{
 				weight = 0.001;
 			}
 
 			
-			if(isKeyPressed(SDL_SCANCODE_I) && !self->busy)	
+			if(isKeyPressed(SDL_SCANCODE_KP_ENTER) && !self->busy)	
 			{
 				if(self->body.uCheck)		/*Dash*/
 				{
@@ -471,6 +488,8 @@ void player_think(Entity *self)
 		vec3d_set(self->rotation,0,0,0);
 		vec3d_set(self->body.velocity,0,0,0);
 	}
+
+	if(self->ck2)exit(1);
 }
 
 void make_spear()
@@ -523,7 +542,7 @@ void spear_think(Entity *self)
 
 		if(Player->health > 0)
 		{
-			if(isKeyHeld(SDL_SCANCODE_O) && self->busy <= 0 && self->busy > -11)
+			if(isKeyHeld(SDL_SCANCODE_KP_5) && self->busy <= 0 && self->busy > -11)
 			{
 				self->busy--;
 			}
@@ -546,7 +565,7 @@ void spear_think(Entity *self)
 					Player->busy = 20;
 				}
 			}
-			if(isKeyPressed(SDL_SCANCODE_I) && !self->busy)
+			if(isKeyPressed(SDL_SCANCODE_KP_ENTER) && !self->busy)
 			{
 				if(Player->body.uCheck)
 				{
@@ -715,7 +734,7 @@ Entity *spawn_snake(Vec3D position, int ck1)
 	space_add_body(space,&ent->body);
 	ent->ck1 = ck1;		/*Rotation Direction*/
 	ent->health = 1;
-	make_shadow(&ent->body);
+	if(!m)make_shadow(&ent->body);
 	return ent;
 }
 
@@ -848,7 +867,7 @@ Entity *spawn_eye(Vec3D position, int ck1)
 	space_add_body(space,&ent->body);
 	ent->ck1 = ck1;
 	ent->health = 1;
-	make_shadow(&ent->body);
+	if(!m)make_shadow(&ent->body);
 	
 	return ent;
 }
@@ -947,7 +966,7 @@ Entity *spawn_frog(Vec3D position)
 	ent->delay = 60;
 	ent->health = 1;
 	space_add_body(space,&ent->body);
-	make_shadow(&ent->body);
+	if(!m)make_shadow(&ent->body);
 	return ent;
 }
 
@@ -1160,7 +1179,7 @@ Entity *build_platform(Vec3D position1, Vec3D position2)
 	ent->body.type = T_OBJECT;
 	ent->ck1 = 1;
 	space_add_body(space,&ent->body);
-	make_shadow(&ent->body);
+	if(!m)make_shadow(&ent->body);
     return ent;
 }
 
