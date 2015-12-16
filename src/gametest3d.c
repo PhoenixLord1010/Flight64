@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
 	m = title_screen();
 
 	if(m == 1)level_edit();
-	run_game();
+	if(m == 0)run_game();
 	
     return 0;
 }
@@ -109,18 +109,15 @@ void run_game()
     Vec3D cameraPos;
 	Vec3D cameraCent = {0,0,0};
     Vec3D cameraRot = {0,0,0};
-	Vec3D pl[4];
 	float cameraDist = 16;
 	GLint iResolution;
 	GLint iGlobalTime;
 	int keyn;
 	Uint8 *keys;
 	Map *map1;
-	Component *btn,*prcnt;
-	RectFloat btn1,btn2,prcnt1,prcnt2;
+	Component *prcnt;
+	RectFloat prcnt1,prcnt2;
 
-	rect_set(&btn1,0,0,-1,-1);
-	rect_set(&btn2,500,200,133,100);
 	rect_set(&prcnt1,0,0,-1,-1);
 	rect_set(&prcnt2,10,10,400,40);
 
@@ -135,8 +132,6 @@ void run_game()
 	glUseProgram(get_shader_program());
 
 	/*Initialise stuff*/
-	btn = component_new();
-	btn = button_new(0,"button",btn1,btn2,"push",4,ButtonRect,0,0,0,0,NULL,NULL,NULL,vec3d(1,0,0),0.9,vec3d(0,1,0),vec3d(0,0,1));
 	prcnt = component_new();
 	prcnt = percent_bar_new(1,"percent",prcnt1,prcnt2,0,0,0.1,vec3d(0,255,0),vec3d(255,0,0),0.9,0.9);
 	mouse_show();
@@ -172,14 +167,6 @@ void run_game()
 		cameraPos.z = cameraCent.z + ((cameraDist * cos(cameraRot.x * DEGTORAD)) * cos(cameraRot.y * DEGTORAD));
 		camera_set_position(cameraPos);
 
-		pl[0] = vec3d(Player->body.position.x+Player->body.bounds.x,Player->body.position.y+Player->body.bounds.y,Player->body.position.z+Player->body.bounds.z+Player->body.bounds.d);
-		pl[1] = vec3d(Player->body.position.x+Player->body.bounds.x,Player->body.position.y+Player->body.bounds.y+Player->body.bounds.h,Player->body.position.z+Player->body.bounds.z+Player->body.bounds.d);
-		pl[2] = vec3d(Player->body.position.x+Player->body.bounds.x+Player->body.bounds.w,Player->body.position.y+Player->body.bounds.y+Player->body.bounds.h,Player->body.position.z+Player->body.bounds.z+Player->body.bounds.d);
-		pl[3] = vec3d(Player->body.position.x+Player->body.bounds.x+Player->body.bounds.w,Player->body.position.y+Player->body.bounds.y,Player->body.position.z+Player->body.bounds.z+Player->body.bounds.d);
-		//if(mouse_in_rect(btn2))btn->state = ButtonHighlight;
-		//if(ray_in_quad(pl[0],pl[1],pl[2],pl[3]))btn->state = ButtonHighlight;
-		//else btn->state = ButtonIdle;
-
 		for(i = 0; i < 10; i++)
 		{
 			if(Player->body.position.x < (cameraCent.x - 2))cameraCent.x-=0.1;
@@ -208,16 +195,165 @@ void run_game()
 		glPushMatrix();
 			camera_setup();
 			entity_draw_all(); 
-			component_draw(btn);
 			component_draw(prcnt);
 			mouse_draw_dot();
         glPopMatrix();
 		
-		graphics_frame_end();		
+		graphics_frame_end();	
+
     } 
 }
 
 void level_edit()
 {
+	int i,b;
+    char bEditLoopRunning = 1;
+    Vec3D cameraPos;
+	Vec3D cameraCent = {0,0,0};
+    Vec3D cameraRot = {-30,45,0};
+	float cameraDist = 24;
+	GLint iResolution;
+	GLint iGlobalTime;
+	int keyn;
+	Uint8 *keys;
+	Map *map1;
+	int ent = 0;
+	Component *ent_L,*ent_R,*label;
+	RectFloat comp,ent_L1,ent_R1,label1;
 
+	rect_set(&comp,0,0,-1,-1);
+	rect_set(&ent_L1,800,100,100,50);
+	rect_set(&ent_R1,910,100,100,50);
+	rect_set(&label1,800,65,210,25);
+
+	map1 = map_load("spawn.txt");
+
+	map1->spawnList[0];
+	
+	iResolution = glGetUniformLocation(get_shader_program(),"iResolution");
+	iGlobalTime = glGetUniformLocation(get_shader_program(),"iGlobalTime");
+    
+	glUseProgram(get_shader_program());
+
+	/*Initialise stuff*/
+	ent_L = component_new();
+	ent_L = button_new(0,"buttonL",comp,ent_L1,"   <--Ent",3,ButtonRect,0,0,0,0,NULL,NULL,NULL,vec3d(1,0,0),0.9,vec3d(0,1,0),vec3d(0,0,1));
+	ent_R = component_new();
+	ent_R = button_new(1,"buttonR",comp,ent_R1,"   Ent-->",3,ButtonRect,0,0,0,0,NULL,NULL,NULL,vec3d(1,0,0),0.9,vec3d(0,1,0),vec3d(0,0,1));
+	label = component_new();
+	label = button_new(2,"label",comp,label1,"player",3,ButtonRect,0,0,0,0,NULL,NULL,NULL,vec3d(1,1,1),0.9,vec3d(1,1,1),vec3d(1,1,1));
+	mouse_show();
+	map_draw(map1);
+	camera_set_position(vec3d(0,5,15));
+	camera_set_pitch(cameraRot.x);
+
+    while (bEditLoopRunning)
+    {
+		keys = SDL_GetKeyboardState(&keyn);
+		if(keys[SDL_SCANCODE_ESCAPE])bEditLoopRunning = 0;
+
+		SDL_PumpEvents();
+
+		mouse_update();
+		UpdateKeyboard();
+		update_highlight(ent,&b);
+
+		/*Camera Stuff*/
+		if(keys[SDL_SCANCODE_W])
+		{
+			cameraCent.x += -sin(cameraRot.y * DEGTORAD);
+			cameraCent.z += -cos(cameraRot.y * DEGTORAD);
+		}
+		if(keys[SDL_SCANCODE_S])
+		{
+			cameraCent.x -= -sin(cameraRot.y * DEGTORAD);
+			cameraCent.z -= -cos(cameraRot.y * DEGTORAD);
+		}
+		if(keys[SDL_SCANCODE_A])
+		{
+			cameraCent.x += -cos(-cameraRot.y * DEGTORAD);
+			cameraCent.z += -sin(-cameraRot.y * DEGTORAD);
+		}
+		if(keys[SDL_SCANCODE_D])
+		{
+			cameraCent.x -= -cos(-cameraRot.y * DEGTORAD);
+			cameraCent.z -= -sin(-cameraRot.y * DEGTORAD);
+		}
+		if(keys[SDL_SCANCODE_Q])cameraCent.y--;
+		if(keys[SDL_SCANCODE_E])cameraCent.y++;
+		if(keys[SDL_SCANCODE_KP_2])cameraRot.x++;
+		if(keys[SDL_SCANCODE_KP_8])cameraRot.x--;
+		if(keys[SDL_SCANCODE_KP_4])cameraRot.y-=2;
+		if(keys[SDL_SCANCODE_KP_6])cameraRot.y+=2;
+		if(keys[SDL_SCANCODE_KP_PLUS])cameraDist+=0.2;
+		if(keys[SDL_SCANCODE_KP_MINUS])cameraDist-=0.2;
+		camera_set_rotation(cameraRot);
+		cameraPos.y = cameraCent.y - (cameraDist * sin(cameraRot.x * DEGTORAD));
+		cameraPos.x = cameraCent.x + ((cameraDist * cos(cameraRot.x * DEGTORAD)) * sin(cameraRot.y * DEGTORAD));
+		cameraPos.z = cameraCent.z + ((cameraDist * cos(cameraRot.x * DEGTORAD)) * cos(cameraRot.y * DEGTORAD));
+		camera_set_position(cameraPos);
+		camera_set_follow(cameraCent);
+       
+		/*Rotation Fixes*/
+		if(cameraRot.x > 180)cameraRot.x -= 360;
+		if(cameraRot.x <= -180)cameraRot.x += 360;
+		if(cameraRot.y > 180)cameraRot.y -= 360;
+		if(cameraRot.y <= -180)cameraRot.y += 360;
+
+
+		graphics_frame_begin();
+		
+        glUniform3f(iResolution, SCREEN_WIDTH, SCREEN_HEIGHT, 100.0f);
+		glUniform1f(iGlobalTime, SDL_GetTicks() / 1000.0f);
+		
+		glPushMatrix();
+			camera_setup();
+			entity_draw_all(); 
+			component_draw(ent_L);
+			component_draw(ent_R);
+			component_draw(label);
+			mouse_draw_dot();
+        glPopMatrix();
+		
+		graphics_frame_end();	
+
+		if(mouse_in_rect(ent_L1))
+		{
+			if(mouse_input_pressed(MouseLeft))
+			{
+				b = 0;
+				ent_L->state = ButtonPressed;
+				do
+				{
+					if(!b)ent--;
+					if(ent < 0)ent = max_entities();
+					update_highlight(ent,&b);
+				}
+				while(!b);
+				button_set_text(label,get_name(ent));
+			}
+			else ent_L->state = ButtonHighlight;
+		}
+		else ent_L->state = ButtonIdle;
+
+		if(mouse_in_rect(ent_R1))
+		{
+			if(mouse_input_pressed(MouseLeft))
+			{
+				b = 0;
+				ent_R->state = ButtonPressed;
+				do
+				{
+					if(!b)ent++;
+					if(ent > max_entities())ent = 0;
+					update_highlight(ent,&b);
+				}
+				while(!b);
+				button_set_text(label,get_name(ent));
+			}
+			else ent_R->state = ButtonHighlight;
+		}
+		else ent_R->state = ButtonIdle;
+
+    } 
 }

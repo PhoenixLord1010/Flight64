@@ -11,7 +11,8 @@ enum STATES {ST_IDLE,ST_WALK,ST_JUMP1,ST_JUMP2,ST_DASH,ST_POUND,ST_DEAD};
 typedef struct Entity_S
 {
     Obj *objModel;
-    Sprite *texture;    /**<object texture*/
+    Sprite *texture[2];    /**<object texture*/
+	int highlight;
     Body body;
 	void (*think) (struct ENTITY_S *self);	/**<think function*/
 	int inuse;
@@ -74,6 +75,10 @@ int entity_is_entity(void *data);
  * @brief updates think functions
  */
 void update_entities();
+
+void update_highlight(int ent, int *b);
+
+int max_entities();
 
 /**
  * @brief clears all entities

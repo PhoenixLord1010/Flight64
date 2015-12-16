@@ -27,11 +27,20 @@ void map_draw(Map *map)
 	{
 		ent = map->spawnList[i];
 		if(strcmp(ent.classname,"player") == 0)
+		{
 			make_player(ent.position);
+			map->spawnList[i].uid = max_entities()-3;
+		}
 		if(strcmp(ent.classname,"ground") == 0)
+		{
 			build_ground(ent.position);
+			map->spawnList[i].uid = max_entities()-1;
+		}
 		if(strcmp(ent.classname,"wall") == 0)
+		{
 			build_wall(ent.position);
+			map->spawnList[i].uid = max_entities()-1;
+		}
 	}
 }
 

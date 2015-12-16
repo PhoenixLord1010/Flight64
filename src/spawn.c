@@ -167,3 +167,13 @@ void spawn_save(char *filename)
 
 	g_file_set_contents(filename,contents,-1,&error);
 }
+
+char * get_name(int id)
+{
+	int i;
+
+	for(i = 0; i < spawn_ct; i++)
+	{
+		if(spawn_list[i].uid == id)return spawn_list[i].classname;
+	}
+}

@@ -165,37 +165,26 @@ void mouse_reset()
 
 void mouse_draw_dot()
 {
-	Vec3D position,position2,cam;
+	Vec3D position,cam;
 	GraphicsView view;
 
 	graphics_get_view(&view);
 	camera_get_position(&cam);
 
 	gluUnProject(__mouse.x, 768-__mouse.y, 0.99f, view.modelView, view.projection, view.viewPort, &position.x, &position.y, &position.z);
-	gluUnProject(__mouse.x, 768-__mouse.y, 1, view.modelView, view.projection, view.viewPort, &position2.x, &position2.y, &position2.z);
-
 	
 	position.x += cam.x;
 	position.y += cam.y;
 	position.z += cam.z;
-	position2.x += cam.x;
-	position2.y += cam.y;
-	position2.z += cam.z;
 	
 	draw_dot_3D(position,
-                  8,
+                  9,
                   vec3d(0,0,0),
                   1);
 	draw_dot_3D(position,
                   6,
                   vec3d(1,1,1),
                   1);
-	draw_dot_3D(position2,
-                  12,
-                  vec3d(1,0,0),
-                  1);
-
-	slog("x = %f, y = %f, z = %f",position2.x,position2.y,position2.z);
 }
 
 void mouse_draw_3d_ray()
